@@ -386,7 +386,7 @@ function qzHome(){
   qzEl().innerHTML = `<div class="qz-panel">
     <div class="qz-title">📝 ${Z('ㄓㄨˋ ㄧㄣ ㄉㄚˋ ㄊㄧㄠˇ ㄓㄢˋ', '注音大挑戰')}</div>
     <div class="qz-say">${Z('ㄎㄢˋ ㄊㄨˊ，ㄉㄧㄢˇ ㄉㄨㄟˋ ˙ㄉㄜ ㄓㄨˋ ㄧㄣ！', '看圖，點對的注音！')}</div>
-    <div class="qz-rules"><span>❤️ ${Z('ㄉㄚˊ ㄉㄨㄟˋ ㄅㄨˇ ㄒㄧㄝˇ', '答對補血')}</span><span>💔 ${Z('ㄉㄚˊ ㄘㄨㄛˋ ㄎㄡˋ ㄒㄧㄝˇ', '答錯扣血')}</span><span>🚩 ${QZ_PER} ${Z('ㄊㄧˊ ㄍㄨㄛˋ ㄍㄨㄢ', '題過關')}</span></div>
+    <div class="qz-rules"><span>❤️ ${Z('ㄌㄧㄢˊ ㄉㄨㄟˋ ㄙㄢ ㄊㄧˊ ㄅㄨˇ ㄒㄧㄝˇ', '連對三題補血')}</span><span>💔 ${Z('ㄉㄚˊ ㄘㄨㄛˋ ㄎㄡˋ ㄒㄧㄝˇ', '答錯扣血')}</span><span>🚩 ${QZ_PER} ${Z('ㄊㄧˊ ㄍㄨㄛˋ ㄍㄨㄢ', '題過關')}</span></div>
     <div class="qz-row"><button class="btn" data-qz="start" data-focus>${Z('ㄉㄧˋ', '第')} ${n} ${Z('ㄍㄨㄢ', '關')} ${Z('ㄎㄞ ㄕˇ', '開始')} ▶</button></div>
     <div class="qz-row"><button class="btn alt" data-qz="parent">👪 家長紀錄${L2.wrong ? `（錯 ${L2.wrong} 次）` : ''}</button></div>
   </div>`;
@@ -401,7 +401,7 @@ function qzStart(){
   if (pool.length < QZ_PER){ QZS.seen = []; pool = QZ_WORDS.slice(); }
   const review = shuffle(missed.map(byH).filter(Boolean)).slice(0, 6);
   const list = [...review, ...shuffle(pool.filter(w => !review.includes(w)))].slice(0, QZ_PER);
-  QZ = { n, list:shuffle(list), i:0, hp:QZ_HP, wrong:0, missed:[], nOpt:n <= 2 ? 2 : 3, busy:false };
+  QZ = { n, list:shuffle(list), i:0, hp:QZ_HP, wrong:0, streak:0, missed:[], nOpt:n <= 2 ? 2 : 3, busy:false };
   SFX.blip(); qzQuestion();
 }
 function qzQuestion(){
@@ -428,17 +428,19 @@ function qzAnswer(k){
     QZ.busy = true; btn.classList.add('ok'); SFX.ok();
     if (!QZ.tried) QZS.log.firstRight++;
     QZS.log.asked++; if (!QZS.seen.includes(w.h)) QZS.seen.push(w.h); qzSave();
-    const full = QZ.hp >= QZ_HP;
-    QZ.hp = Math.min(QZ_HP, QZ.hp + 1);   // 答對補血
+    // 連續三題第一次就答對，才補一顆愛心（答錯扣掉的不會馬上補回來）
+    QZ.streak = QZ.tried ? 0 : QZ.streak + 1;
+    const heal = QZ.streak >= 3 && QZ.hp < QZ_HP;
+    if (heal){ QZ.hp++; QZ.streak = 0; }
     $('qzFb').innerHTML = `<span class="ok">✅ ${Z('ㄉㄚˊ ㄉㄨㄟˋ ˙ㄌㄜ！', '答對了！')}</span>`;
-    qzEl().querySelector('.qz-hp').innerHTML = heartsHtml(QZ.hp, full ? '' : 'gain');
+    qzEl().querySelector('.qz-hp').innerHTML = heartsHtml(QZ.hp, heal ? 'gain' : '');
     qzEl().querySelector('.qz-steps').innerHTML = stepsHtml(QZ.i + 1);
     const pct = (QZ.i + 1) / QZ_PER * 100;   // 往前走一步
     qzEl().querySelector('.qz-me').style.left = pct + '%'; qzEl().querySelector('.qz-done').style.width = pct + '%';
     setTimeout(() => speak(w.h), 350);   // 唸出正確的詞，家長在旁邊聽得到
     qzTimer = setTimeout(() => { QZ.i++; if (QZ.i >= QZ_PER) qzClear(); else qzQuestion(); }, 1500);
   } else {
-    QZ.tried = true; QZ.wrong++; btn.classList.add('no'); btn.disabled = true; SFX.no();
+    QZ.tried = true; QZ.wrong++; QZ.streak = 0; btn.classList.add('no'); btn.disabled = true; SFX.no();
     if (!QZ.missed.some(m => m.w === w)) QZ.missed.push({ w, pick:o.z });
     logWrong(w, o);
     QZ.hp--;   // 答錯扣一顆愛心
@@ -461,15 +463,15 @@ function qzClear(){
   </div>`;
   focusFirst();
 }
+// 愛心扣光：顯示「再接再厲」，過一下就跳出遊戲回到首頁（這一關的錯題已經記在家長紀錄裡）
 function qzFail(){
-  SFX.no();
+  SFX.no(); QZ = null;
   qzEl().innerHTML = `<div class="qz-panel">
-    <div class="qz-title">😵 ${Z('ㄊㄧˇ ㄌㄧˋ ㄩㄥˋ ㄨㄢˊ ˙ㄌㄜ', '體力用完了')}</div>
-    <div class="qz-say">${Z('ㄒㄧㄡ ㄒㄧ ㄧ ˙ㄒㄧㄚ，ㄗㄞˋ ㄕˋ ㄧ ㄘˋ！', '休息一下，再試一次！')}</div>
-    ${QZ.missed.length ? `<div class="qz-sub">這一關選錯的（左邊是對的，右邊是選錯的）</div>${missList(QZ.missed)}` : ''}
-    <div class="qz-row"><button class="btn" data-qz="start" data-focus>${Z('ㄗㄞˋ ㄕˋ ㄧ ㄘˋ', '再試一次')} ▶</button><button class="btn alt" data-qz="parent">👪 家長紀錄</button><button class="btn alt" data-qz="home">🏠 ${Z('ㄏㄨㄟˊ ㄕㄡˇ ㄧㄝˋ', '回首頁')}</button></div>
+    <div class="qz-title">💪 ${Z('ㄗㄞˋ ㄐㄧㄝ ㄗㄞˋ ㄌㄧˋ', '再接再厲')}</div>
+    <div class="qz-say">${Z('ㄞˋ ㄒㄧㄣ ㄎㄡˋ ㄍㄨㄤ ˙ㄌㄜ', '愛心扣光了')}</div>
   </div>`;
-  focusFirst();
+  setTimeout(() => speak('再接再厲'), 500);
+  qzTimer = setTimeout(qzHome, 3000);
 }
 // 家長紀錄：哪一種易錯點錯最多、哪些詞常選錯、最近錯的題目
 function qzParent(){
@@ -512,9 +514,10 @@ function qzClick(e){
 const HELP_KID = [
   ['🖼️', 'ㄎㄢˋ ㄊㄨˊ ㄏㄜˊ ㄗˋ', '看圖和字'],
   ['👆', 'ㄉㄧㄢˇ ㄉㄨㄟˋ ˙ㄉㄜ ㄓㄨˋ ㄧㄣ', '點對的注音'],
-  ['❤️', 'ㄉㄚˊ ㄉㄨㄟˋ ㄅㄨˇ ㄒㄧㄝˇ，ㄉㄚˊ ㄘㄨㄛˋ ㄎㄡˋ ㄒㄧㄝˇ', '答對補血，答錯扣血'],
+  ['💔', 'ㄉㄚˊ ㄘㄨㄛˋ ㄎㄡˋ ㄧ ㄎㄜ ㄞˋ ㄒㄧㄣ', '答錯扣一顆愛心'],
+  ['❤️', 'ㄌㄧㄢˊ ㄉㄨㄟˋ ㄙㄢ ㄊㄧˊ ㄅㄨˇ ㄧ ㄎㄜ', '連對三題補一顆'],
   ['🚩', 'ㄗㄡˇ ㄉㄠˋ ㄑㄧˊ ˙ㄗ ㄐㄧㄡˋ ㄍㄨㄛˋ ㄍㄨㄢ', '走到旗子就過關']];
-const HELP_PARENT = '畫面中間會出現一個東西或動作的像素圖和國字，下面有 2～3 個注音，孩子要選出正確的那一個（第 1、2 關兩個選項，第 3 關起三個；電腦也可以按 1～3）。題庫有 108 個一年級常用詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。上方是前進的路和 5 顆愛心：答對會有「叮叮叮」的音效、電腦會唸出這個詞，小朋友往前走一步並補一顆心；答錯會有低沉的「嗶嗶」聲並扣一顆心，可以再選到對為止。家長不用在旁邊，聽聲音就知道孩子答得對不對。20 題走到旗子就過關，愛心用完要重來這一關。每一關結束會列出這一關選錯的詞；「家長紀錄」統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，之後每一關也會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
+const HELP_PARENT = '畫面中間會出現一個東西或動作的像素圖和國字，下面有 2～3 個注音，孩子要選出正確的那一個（第 1、2 關兩個選項，第 3 關起三個；電腦也可以按 1～3）。題庫有 108 個一年級常用詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。上方是前進的路和 5 顆愛心：答對會有「叮叮叮」的音效、電腦會唸出這個詞，小朋友往前走一步；答錯會有低沉的「嗶嗶」聲並扣一顆心，可以再選到對為止，但扣掉的心不會因為選對就補回來，連續三題第一次就答對才補一顆。家長不用在旁邊，聽聲音就知道孩子答得對不對。20 題走到旗子就過關，愛心用完會顯示「再接再厲」，接著跳出遊戲回到首頁，要重新開始這一關。每一關結束會列出這一關選錯的詞；「家長紀錄」統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，之後每一關也會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
 function openHelp(){
   SFX.blip();
   $('modal').innerHTML = `<div class="qz-panel">

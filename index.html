@@ -67,14 +67,24 @@ button{font:inherit;color:inherit}
 
 /* 題目畫面 */
 .qz-top{display:flex;align-items:center;gap:12px;flex:none}
-.qz-track{position:relative;flex:1;height:30px;background:#d8b878;border:4px solid var(--ink);box-shadow:0 4px 0 rgba(0,0,0,.25)}
-.qz-track::before{content:"";position:absolute;left:6px;right:30px;top:50%;border-top:3px dashed #a8824a}
-.qz-done{position:absolute;left:0;top:0;bottom:0;background:var(--grass2);transition:width .5s steps(5)}
-.qz-me{position:absolute;bottom:2px;width:36px;height:36px;max-width:none;translate:-50% 0;image-rendering:pixelated;image-rendering:crisp-edges;transition:left .5s steps(5)}
-.qz-flag{position:absolute;right:2px;top:50%;translate:0 -60%;font-size:26px}
+.qz-track{position:relative;flex:1;height:38px;margin-top:14px;border:4px solid var(--ink);border-radius:999px;box-shadow:0 4px 0 rgba(0,0,0,.25);
+  background:repeating-linear-gradient(-45deg,#ffe3ef 0 10px,#fff6c8 10px 20px)}
+.qz-done{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:repeating-linear-gradient(-45deg,#ffb3d1 0 10px,#ffd76a 10px 20px);transition:width .5s steps(5)}
+.qz-steps{position:absolute;left:14px;right:40px;top:50%;translate:0 -50%;display:flex;justify-content:space-between;align-items:center}
+.qz-step{width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid #c8a0b8}
+.qz-step.on{width:auto;height:auto;border:0;background:none;font-size:13px;line-height:1;color:#f0a000;text-shadow:1px 1px 0 var(--ink),-1px -1px 0 var(--ink),1px -1px 0 var(--ink),-1px 1px 0 var(--ink)}
+.qz-me{position:absolute;bottom:14px;width:44px;height:44px;max-width:none;translate:-50% 0;image-rendering:pixelated;image-rendering:crisp-edges;transition:left .5s steps(5);animation:qzHop .8s steps(2) infinite}
+.qz-flag{position:absolute;right:-6px;top:50%;translate:0 -58%;font-size:30px;filter:drop-shadow(2px 2px 0 rgba(0,0,0,.25))}
+@keyframes qzHop{50%{transform:translateY(-5px)}}
+/* 愛心：扣掉的那顆會碎掉、抖一抖；補回來的那顆會跳一下 */
+.qz-heart{display:inline-block}
+.qz-heart.lost{animation:qzLose .7s steps(4)}
+.qz-heart.gain{animation:qzGain .5s steps(4)}
+@keyframes qzLose{0%{transform:scale(1.6)}30%{transform:scale(1.6) rotate(-15deg)}60%{transform:scale(1.3) rotate(15deg)}100%{transform:scale(1)}}
+@keyframes qzGain{0%{transform:scale(.4)}70%{transform:scale(1.5)}100%{transform:scale(1)}}
 .qz-stat{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex:none}
 .qz-no{font-weight:900;font-size:18px;background:var(--paper);border:3px solid var(--ink);padding:0 8px}
-.qz-hp{display:flex;gap:1px;font-size:20px}
+.qz-hp{display:flex;gap:2px;font-size:24px}
 .qz-heart.off{opacity:.55}
 .qz-q{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
 .qz-card{display:flex;align-items:center;gap:18px;background:var(--paper);border:4px solid var(--ink);box-shadow:6px 6px 0 rgba(0,0,0,.25);padding:10px 24px}
@@ -89,6 +99,12 @@ button{font:inherit;color:inherit}
 .qz-opt.ok{background:var(--ok-bg);border-color:var(--leaf)}
 .qz-opt.no{background:var(--no-bg);opacity:.75;animation:qzShake .3s steps(3)}
 .qz-opt:disabled{cursor:default}
+/* 注音一個音節一行，上下排列 */
+.qz-zy{display:flex;flex-direction:column;align-items:center;gap:.32em}
+.qz-zy .sy{margin:0;padding-right:.36em}
+.qz-opt{padding:10px 6px}
+.qz-opt.s2{font-size:clamp(32px,5.6vh,48px)}
+.qz-opt.s3{font-size:clamp(28px,4.6vh,40px)}
 .qz-k{position:absolute;left:6px;top:4px;font-family:var(--f-px);font-size:10px;color:#9a9ab0}
 @keyframes qzShake{0%,100%{translate:0}33%{translate:-6px}66%{translate:6px}}
 .qz-fb{flex:none;min-height:32px;text-align:center;font-weight:900;font-size:22px}
@@ -144,6 +160,10 @@ button{font:inherit;color:inherit}
   .qz-opts{gap:8px}
   .qz-opt{font-size:26px;min-height:84px;padding:4px 2px}
   .qz-opts.n2 .qz-opt{font-size:32px}
+  .qz-opt.s2{font-size:28px}.qz-opts.n2 .qz-opt.s2{font-size:30px}
+  .qz-opt.s3{font-size:24px}
+  .qz-track{height:32px}.qz-steps{left:10px;right:30px}.qz-step{width:6px;height:6px;border-width:1.5px}.qz-step.on{font-size:10px}.qz-me{width:36px;height:36px;bottom:10px}
+  .qz-top{flex-wrap:wrap}.qz-stat{flex-direction:row;align-items:center;gap:8px;width:100%;justify-content:space-between}
   .qz-title{font-size:26px}.qz-say{font-size:20px}
   .help-list{font-size:19px}
 }
@@ -354,7 +374,12 @@ const qzEl = () => $('stage');
 const WALKER = emojiSprite('🧒').toDataURL();   // 前進條上的小朋友
 const PIC_CACHE = {};
 const picUrl = e => PIC_CACHE[e] || (PIC_CACHE[e] = emojiSprite(e).toDataURL());
-const heartsHtml = hp => Array.from({ length:QZ_HP }, (_, i) => `<span class="qz-heart ${i < hp ? '' : 'off'}">${i < hp ? '❤️' : '🤍'}</span>`).join('');
+// fx：'lost' 扣掉的那顆（剛碎掉）、'gain' 剛補回來的那顆
+const heartsHtml = (hp, fx) => Array.from({ length:QZ_HP }, (_, i) => {
+  const lost = fx === 'lost' && i === hp, gain = fx === 'gain' && i === hp - 1;
+  return `<span class="qz-heart ${i < hp ? '' : 'off'} ${lost ? 'lost' : ''} ${gain ? 'gain' : ''}">${i < hp ? '❤️' : lost ? '💔' : '🤍'}</span>`;
+}).join('');
+const stepsHtml = done => Array.from({ length:QZ_PER }, (_, i) => i < done ? '<i class="qz-step on">★</i>' : '<i class="qz-step"></i>').join('');
 function qzHome(){
   clearTimeout(qzTimer); QZ = null;
   const n = QZS.stage, L2 = QZS.log;
@@ -384,14 +409,14 @@ function qzQuestion(){
   QZ.opts = makeOptions(w, QZ.nOpt); QZ.tried = false; QZ.busy = false;
   const pct = QZ.i / QZ_PER * 100;
   qzEl().innerHTML = `<div class="qz-top">
-      <div class="qz-track"><div class="qz-done" style="width:${pct}%"></div><img class="qz-me" src="${WALKER}" alt="" style="left:${pct}%"><span class="qz-flag">🚩</span></div>
+      <div class="qz-track"><div class="qz-done" style="width:${pct}%"></div><div class="qz-steps">${stepsHtml(QZ.i)}</div><img class="qz-me" src="${WALKER}" alt="" style="left:${pct}%"><span class="qz-flag">🎁</span></div>
       <div class="qz-stat"><span class="qz-no">${Z('ㄉㄧˋ', '第')}${QZ.n}${Z('ㄍㄨㄢ', '關')} ${QZ.i + 1}/${QZ_PER}</span><span class="qz-hp">${heartsHtml(QZ.hp)}</span></div>
     </div>
     <div class="qz-q">
       <div class="qz-card"><img class="qz-pic" src="${picUrl(w.e)}" alt="${esc(w.h)}"><div class="qz-han">${esc(w.h)}</div></div>
       <div class="qz-ask">${Z('ㄋㄚˇ ㄧ ˙ㄍㄜ ㄓㄨˋ ㄧㄣ ㄕˋ ㄉㄨㄟˋ ˙ㄉㄜ？', '哪一個注音是對的？')}</div>
     </div>
-    <div class="qz-opts n${QZ.opts.length}">${QZ.opts.map((o, k) => `<button class="qz-opt" data-opt="${k}"><span class="qz-k">${k + 1}</span><span class="qz-zy">${Z(o.z, false)}</span></button>`).join('')}</div>
+    <div class="qz-opts n${QZ.opts.length}">${QZ.opts.map((o, k) => `<button class="qz-opt s${o.z.split(' ').length}" data-opt="${k}"><span class="qz-k">${k + 1}</span><span class="qz-zy">${Z(o.z, false)}</span></button>`).join('')}</div>
     <div class="qz-fb" id="qzFb"></div>`;
   focusFirst();
 }
@@ -403,9 +428,11 @@ function qzAnswer(k){
     QZ.busy = true; btn.classList.add('ok'); SFX.ok();
     if (!QZ.tried) QZS.log.firstRight++;
     QZS.log.asked++; if (!QZS.seen.includes(w.h)) QZS.seen.push(w.h); qzSave();
+    const full = QZ.hp >= QZ_HP;
     QZ.hp = Math.min(QZ_HP, QZ.hp + 1);   // 答對補血
     $('qzFb').innerHTML = `<span class="ok">✅ ${Z('ㄉㄚˊ ㄉㄨㄟˋ ˙ㄌㄜ！', '答對了！')}</span>`;
-    qzEl().querySelector('.qz-hp').innerHTML = heartsHtml(QZ.hp);
+    qzEl().querySelector('.qz-hp').innerHTML = heartsHtml(QZ.hp, full ? '' : 'gain');
+    qzEl().querySelector('.qz-steps').innerHTML = stepsHtml(QZ.i + 1);
     const pct = (QZ.i + 1) / QZ_PER * 100;   // 往前走一步
     qzEl().querySelector('.qz-me').style.left = pct + '%'; qzEl().querySelector('.qz-done').style.width = pct + '%';
     setTimeout(() => speak(w.h), 350);   // 唸出正確的詞，家長在旁邊聽得到
@@ -414,9 +441,9 @@ function qzAnswer(k){
     QZ.tried = true; QZ.wrong++; btn.classList.add('no'); btn.disabled = true; SFX.no();
     if (!QZ.missed.some(m => m.w === w)) QZ.missed.push({ w, pick:o.z });
     logWrong(w, o);
-    QZ.hp--;
-    qzEl().querySelector('.qz-hp').innerHTML = heartsHtml(QZ.hp);
-    $('qzFb').innerHTML = `<span class="no">💔 ${Z('ㄗㄞˋ ㄒㄧㄤˇ ㄧ ㄒㄧㄤˇ', '再想一想')}</span>`;
+    QZ.hp--;   // 答錯扣一顆愛心
+    qzEl().querySelector('.qz-hp').innerHTML = heartsHtml(QZ.hp, 'lost');
+    $('qzFb').innerHTML = `<span class="no">💔 ${Z('ㄎㄡˋ ㄧ ㄎㄜ ㄞˋ ㄒㄧㄣ，ㄗㄞˋ ㄒㄧㄤˇ ㄧ ㄒㄧㄤˇ', '扣一顆愛心，再想一想')}</span>`;
     if (QZ.hp <= 0){ QZ.busy = true; qzTimer = setTimeout(qzFail, 900); }
   }
 }

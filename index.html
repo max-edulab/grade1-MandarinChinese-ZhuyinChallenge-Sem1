@@ -86,10 +86,10 @@ button{font:inherit;color:inherit}
 .qz-no{font-weight:900;font-size:18px;background:var(--paper);border:3px solid var(--ink);padding:0 8px}
 .qz-hp{display:flex;gap:2px;font-size:24px}
 .qz-heart.off{opacity:.55}
-.qz-q{flex:1;min-height:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
+.qz-q{flex:1 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
 .qz-card{display:flex;align-items:center;gap:18px;background:var(--paper);border:4px solid var(--ink);box-shadow:6px 6px 0 rgba(0,0,0,.25);padding:10px 24px}
-.qz-pic{width:clamp(80px,16vh,140px);height:clamp(80px,16vh,140px);image-rendering:pixelated;image-rendering:crisp-edges}
-.qz-han{font-size:clamp(38px,8vh,68px);font-weight:900;letter-spacing:.06em;color:var(--ink);white-space:nowrap}
+.qz-pic{width:clamp(64px,13vh,140px);height:clamp(64px,13vh,140px);image-rendering:pixelated;image-rendering:crisp-edges}
+.qz-han{font-size:clamp(32px,7vh,68px);font-weight:900;letter-spacing:.06em;color:var(--ink);white-space:nowrap}
 .qz-ask{font-weight:900;font-size:20px;background:rgba(255,255,255,.8);border:3px solid var(--ink);padding:2px 12px}
 /* 答案框：固定大小（放得下三個字的注音），置中排列，換題目不會跳動 */
 .qz-opts{flex:none;display:flex;justify-content:center;gap:18px}
@@ -102,7 +102,7 @@ button{font:inherit;color:inherit}
 /* 注音一個音節一行，上下排列 */
 .qz-zy{display:flex;flex-direction:column;align-items:center;gap:.24em}
 .qz-zy .sy{margin:0;padding-right:.36em}
-.qz-opt{flex:0 1 160px;min-width:0;width:160px;height:232px;min-height:0;padding:8px 4px;font-size:34px}
+.qz-opt{--oh:clamp(140px,27vh,232px);flex:0 1 calc(var(--oh) * .69);min-width:0;width:calc(var(--oh) * .69);height:var(--oh);min-height:0;padding:8px 4px;font-size:calc(var(--oh) * .146)}
 .qz-k{position:absolute;left:6px;top:4px;font-family:var(--f-px);font-size:10px;color:#9a9ab0}
 @keyframes qzShake{0%,100%{translate:0}33%{translate:-6px}66%{translate:6px}}
 .qz-fb{flex:none;min-height:32px;text-align:center;font-weight:900;font-size:22px}
@@ -201,7 +201,7 @@ button{font:inherit;color:inherit}
   .qz-card{padding:8px 14px;gap:12px}
   .qz-han{font-size:36px}.qz-pic{width:84px;height:84px}
   .qz-opts{gap:8px}
-  .qz-opt{flex:0 1 96px;width:96px;height:172px;padding:4px 2px;font-size:25px}
+  .qz-opt{--oh:172px;padding:4px 2px}
   .qz-slot{width:22px;height:22px}
   .qz-track{height:32px}.qz-steps{left:10px;right:30px}.qz-step{width:6px;height:6px;border-width:1.5px}.qz-step.on{font-size:10px}.qz-me{width:30px;height:34px;bottom:10px}
   .qz-top{flex-wrap:wrap}.qz-stat{flex-direction:row;align-items:center;gap:8px;width:100%;justify-content:space-between}

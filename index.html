@@ -147,6 +147,7 @@ button{font:inherit;color:inherit}
 .seg{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:5.6em;background:var(--white);border:4px solid var(--ink);box-shadow:0 4px 0 var(--ink);padding:6px 12px;cursor:pointer;font-weight:900;font-size:22px}
 .seg small{font-size:14px;color:var(--muted)}
 .seg.on{background:var(--gold)}
+.seg .mul{font-size:13px;line-height:1;background:var(--red);color:var(--white);border:2px solid var(--ink);padding:2px 5px;white-space:nowrap}
 .seg.on small{color:var(--ink)}
 .seg:active{transform:translateY(4px);box-shadow:none}
 .seg:focus-visible{outline:3px solid var(--brick);outline-offset:2px}
@@ -449,6 +450,7 @@ const DIFFS = [
   { n:3, z:'ㄓㄨㄥ ㄉㄥˇ', h:'中等', tip:['ㄙㄢ ㄒㄩㄢˇ ㄧ', '三選一'] },
   { n:4, z:'ㄎㄨㄣˋ ㄋㄢˊ', h:'困難', tip:['ㄙˋ ㄒㄩㄢˇ ㄧ', '四選一'] }];
 const COUNTS = [10, 20, 30];
+const canMul = n => n - 1;   // 答對一題拿幾罐：簡單 1 罐、中等 2 罐、困難 3 罐
 // ---------- 農場的動物：餵三罐就吃飽，吃飽了就跟著你走 ----------
 const FEED_NEED = 1;   // 餵一罐就跟著你走
 const FARM = [
@@ -613,7 +615,7 @@ function qzHome(){
     <div class="qz-say">${Z('ㄎㄢˋ ㄊㄨˊ，ㄉㄧㄢˇ ㄉㄨㄟˋ ˙ㄉㄜ ㄓㄨˋ ㄧㄣ！', '看圖，點對的注音！')}</div>
     <div class="qz-pick" role="radiogroup" aria-label="難度">
       <span class="lab">${Z('ㄋㄢˊ ㄉㄨˋ', '難度')}</span>
-      ${DIFFS.map(d => `<button class="seg ${QZS.diff === d.n ? 'on' : ''}" role="radio" aria-checked="${QZS.diff === d.n}" data-diff="${d.n}"><b>${Z(d.z, d.h)}</b><small>${Z(d.tip[0], d.tip[1])}</small></button>`).join('')}
+      ${DIFFS.map(d => `<button class="seg ${QZS.diff === d.n ? 'on' : ''}" role="radio" aria-checked="${QZS.diff === d.n}" data-diff="${d.n}"><b>${Z(d.z, d.h)}</b><small>${Z(d.tip[0], d.tip[1])}</small>${canMul(d.n) > 1 ? `<span class="mul">🥫×${canMul(d.n)}</span>` : ''}</button>`).join('')}
     </div>
     <div class="qz-pick" role="radiogroup" aria-label="題數">
       <span class="lab">${Z('ㄊㄧˊ ㄕㄨˋ', '題數')}</span>
@@ -683,7 +685,7 @@ function qzAnswer(k){
 // 題目做完：拿到的飼料罐放進存檔，去農場餵動物
 function qzDone(){
   const got = QZ.got, wrong = QZ.wrong, total = QZ.total, missed = QZ.missed;
-  QZS.cans += got; qzSave(); QZ = null;
+  QZS.cans += got * canMul(QZ.nOpt); qzSave(); QZ = null;
   SFX.clear();
   qzFarm({ got, wrong, total, missed });
 }
@@ -1139,7 +1141,7 @@ const HELP_KID = [
   ['🐷', 'ㄗㄞˋ ㄋㄨㄥˊ ㄔㄤˇ ㄨㄟˋ ㄉㄨㄥˋ ㄨˋ', '在農場餵動物'],
   ['🐾', 'ㄨㄟˋ ㄍㄨㄛˋ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ ㄏㄨㄟˋ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ', '餵過的動物會跟著你'],
   ['😋', 'ㄗㄡˇ ㄊㄞˋ ㄐㄧㄡˇ，ㄉㄨㄥˋ ㄨˋ ㄏㄨㄟˋ ㄜˋ ˙ㄉㄜ ㄉㄧㄠˋ ㄉㄨㄟˋ', '走太久，動物會餓得掉隊']];
-const HELP_PARENT = '每次開始先選難度和題數：簡單二選一、中等三選一、困難四選一；題數 10、20 或 30 題（預設 10 題），按「確定」開始。畫面中間是一個東西或動作的像素圖和國字，下面是注音選項，選出正確的那一個（電腦也可以按 1～4）。題庫有 108 個一年級常用詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。答對會有「叮叮叮」的音效、電腦會唸出這個詞；上方有一排空罐，題數幾題就有幾個，第一次就答對的題目，罐子就會裝滿飼料；答錯會有低沉的「嗶嗶」聲，這一題就拿不到罐子，可以再選到對為止。家長不用在旁邊，聽聲音就知道孩子答得對不對。題目做完會到農場地圖（左右有大入口，連著公園、迷宮、外太空、海邊，往同一邊走五張會回到農場；15 種動物分散住在這五張地圖）：動物散在地圖上，點地圖小朋友就會走過去，點動物會走到牠旁邊餵一罐（電腦也可以用方向鍵走路，撞到動物就餵），餵一罐動物就會排在後面跟著你走，可以一直餵下一隻；每種動物各有 2 隻；跟著你的動物走路時頭上會顯示血條，走的步數超過地圖的格子數（24×15＝360 步）就會肚子餓、掉隊，留在原地等你再去餵；點跟著你的動物會顯示牠的血條和還可以走幾步，並問要不要現在餵牠，餵一罐血條就補滿；沒用完的飼料罐和跟著你的動物會留到下次。也可以不餵，直接按「再玩一次」。飼料罐用完時會跳出「重新蒐集飼料罐」，按確定回去答題。上方的「錯題紀錄」隨時可以看，會統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，也可以清空；之後出題時會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
+const HELP_PARENT = '每次開始先選難度和題數：簡單二選一、中等三選一、困難四選一；題數 10、20 或 30 題（預設 10 題），按「確定」開始。畫面中間是一個東西或動作的像素圖和國字，下面是注音選項，選出正確的那一個（電腦也可以按 1～4）。題庫有 108 個一年級常用詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。答對會有「叮叮叮」的音效、電腦會唸出這個詞；上方有一排空罐，題數幾題就有幾個，第一次就答對的題目，罐子就會裝滿飼料；題目做完時，簡單每答對一題拿 1 罐、中等拿 2 罐、困難拿 3 罐；答錯會有低沉的「嗶嗶」聲，這一題就拿不到罐子，可以再選到對為止。家長不用在旁邊，聽聲音就知道孩子答得對不對。題目做完會到農場地圖（左右有大入口，連著公園、迷宮、外太空、海邊，往同一邊走五張會回到農場；15 種動物分散住在這五張地圖）：動物散在地圖上，點地圖小朋友就會走過去，點動物會走到牠旁邊餵一罐（電腦也可以用方向鍵走路，撞到動物就餵），餵一罐動物就會排在後面跟著你走，可以一直餵下一隻；每種動物各有 2 隻；跟著你的動物走路時頭上會顯示血條，走的步數超過地圖的格子數（24×15＝360 步）就會肚子餓、掉隊，留在原地等你再去餵；點跟著你的動物會顯示牠的血條和還可以走幾步，並問要不要現在餵牠，餵一罐血條就補滿；沒用完的飼料罐和跟著你的動物會留到下次。也可以不餵，直接按「再玩一次」。飼料罐用完時會跳出「重新蒐集飼料罐」，按確定回去答題。上方的「錯題紀錄」隨時可以看，會統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，也可以清空；之後出題時會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
 function openHelp(){
   SFX.blip();
   $('modal').innerHTML = `<div class="qz-panel">

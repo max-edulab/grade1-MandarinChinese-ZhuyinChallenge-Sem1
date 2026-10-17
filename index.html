@@ -189,7 +189,8 @@ button{font:inherit;color:inherit}
 .map-wrap{position:relative;align-self:center;width:min(100%,calc((100vh - 300px) * 1.6),860px)}
 .gate-lab{position:absolute;top:31%;translate:0 -50%;z-index:2;pointer-events:none;font-weight:900;font-size:clamp(12px,1.6vw,16px);background:var(--paper);border:3px solid var(--ink);padding:0 6px;white-space:nowrap}
 .gate-lab.l{left:4px}.gate-lab.r{right:4px}
-.map-name{position:absolute;top:6px;left:50%;translate:-50% 0;pointer-events:none;font-weight:900;font-size:clamp(14px,1.8vw,18px);color:var(--ink);background:var(--gold);border:3px solid var(--ink);padding:0 10px}
+.gate-lab.u,.gate-lab.d{left:calc(100% * 14 / 24 + 2px);translate:none}.gate-lab.u{top:2px}.gate-lab.d{top:auto;bottom:2px}
+.map-name{position:absolute;top:2px;left:calc(100% * 3 / 24);pointer-events:none;font-weight:900;font-size:clamp(14px,1.8vw,18px);color:var(--ink);background:var(--gold);border:3px solid var(--ink);padding:0 10px}
 .farm-block{position:absolute;inset:0;z-index:6;background:rgba(18,20,60,.45)}
 .farm-cv{display:block;width:100%;max-width:100%;aspect-ratio:16/10;image-rendering:pixelated;image-rendering:crisp-edges;border:4px solid var(--ink);box-shadow:6px 6px 0 rgba(0,0,0,.25);cursor:pointer;touch-action:manipulation}
 .farm-tip{align-self:center;font-weight:700;font-size:16px;background:rgba(255,255,255,.75);border:2px solid var(--ink);padding:1px 10px;text-align:center}
@@ -695,7 +696,7 @@ function qzDone(){
 const FW = 24, FH = 15, FT = 16;
 const MAPS = {
   farm:[
-    '########################',
+    '###########VV###########',
     '#BB.....*......T.......#',
     '#BB.........~~.....*...#',
     '#.....T.....~~~........#',
@@ -709,7 +710,7 @@ const MAPS = {
     '#.................T....#',
     '#..*.....*.............#',
     '#...........*......*...#',
-    '########################'],
+    '###########VV###########'],
   park:[
     '########################',
     '#..........=...........#',
@@ -781,18 +782,47 @@ const WORLD = [
   { id:'space', name:['外太空', 'ㄨㄞˋ ㄊㄞˋ ㄎㄨㄥ'] },
   { id:'beach', name:['海邊', 'ㄏㄞˇ ㄅㄧㄢ'] }];
 const FSOLID = '#BT~FbHCRPU';
+// 全部答對的獎勵：農場上下的入口打開，通到「罐子迷宮」，沿路有罐子可以撿（每次全對都會重新變一個迷宮）
+const MAZE_UP = WORLD.length, MAZE_DOWN = WORLD.length + 1, MAZE_CANS = 8;
+const MAZE_NAME = ['ㄍㄨㄢˋ ˙ㄗ ㄇㄧˊ ㄍㄨㄥ', '罐子迷宮'];
+function makeMaze(up){
+  const g = Array.from({ length:FH }, () => Array(FW).fill('#'));
+  const cells = [], seen = new Set(), key = (x, y) => x + ',' + y;
+  // 格子在奇數座標（x 1～21、y 1～13），用深度優先把牆打通，每一格都走得到
+  const st = [[11, up ? 13 : 1]]; seen.add(key(...st[0])); g[st[0][1]][st[0][0]] = '.';
+  while (st.length){
+    const [x, y] = st[st.length - 1];
+    const nb = shuffle([[2, 0], [-2, 0], [0, 2], [0, -2]]).map(([dx, dy]) => [x + dx, y + dy, x + dx / 2, y + dy / 2]).filter(([nx, ny]) => nx >= 1 && nx <= 21 && ny >= 1 && ny <= 13 && !seen.has(key(nx, ny)));
+    if (!nb.length){ st.pop(); continue; }
+    const [nx, ny, wx, wy] = nb[0];
+    g[wy][wx] = g[ny][nx] = '.'; seen.add(key(nx, ny)); st.push([nx, ny]); cells.push([nx, ny]);
+  }
+  // 多打通幾面牆，讓路不只一條，比較不會走死
+  for (let k = 0; k < 14; k++){
+    const x = 1 + Math.floor(Math.random() * 21), y = 1 + Math.floor(Math.random() * 13);
+    if (g[y][x] === '#' && ((g[y][x - 1] === '.' && g[y][x + 1] === '.' && g[y - 1][x] === '#' && g[y + 1][x] === '#') || (g[y - 1][x] === '.' && g[y + 1][x] === '.' && g[y][x - 1] === '#' && g[y][x + 1] === '#'))) g[y][x] = '.';
+  }
+  for (let k = 0; k < 10; k++){ const x = 1 + Math.floor(Math.random() * 21), y = 1 + Math.floor(Math.random() * 13); if (g[y][x] === '.') g[y][x] = '*'; }
+  g[up ? FH - 1 : 0][11] = 'V';   // 回農場的入口
+  const rows = g.map(r => r.join(''));
+  // 罐子放在離入口遠一點的路上，彼此分開
+  const ey = up ? 13 : 1, spots = shuffle(cells.filter(([x, y]) => Math.abs(x - 11) + Math.abs(y - ey) > 4)), cans = [];
+  spots.forEach(([x, y]) => { if (cans.length < MAZE_CANS && !cans.some(c => Math.abs(c.x - x) + Math.abs(c.y - y) < 4)) cans.push({ x, y }); });
+  return { rows, cans, animals:[], bg:renderMapBg('maze', rows) };
+}
+// 還有沒撿的罐子（迷宮還沒去過也算）
+const bonusLeft = () => FM && FM.bonus && [MAZE_UP, MAZE_DOWN].some(mi => !FM.world[mi] || FM.world[mi].cans.length);
 const fP = (g, x, y, c, w = 1, h = 1) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
 const fHash = (x, y, k) => { let h = x * 374761393 + y * 668265263 + k * 1442695041; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967295; };
 let FM = null;
 const SPRITES = {};
 const sprite = e => SPRITES[e] || (SPRITES[e] = emojiSprite(e));
-const mapRows = mi => MAPS[WORLD[mi].id];
+const mapRows = mi => mi < WORLD.length ? MAPS[WORLD[mi].id] : FM.world[mi].rows;
 const homeOf = id => FARM.findIndex(a => a.id === spOf(id)) % WORLD.length;   // 每種動物住在哪一張地圖
 const BG_CACHE = {};
-const getBg = mi => BG_CACHE[mi] || (BG_CACHE[mi] = renderMapBg(mi));
+const getBg = mi => mi < WORLD.length ? (BG_CACHE[mi] || (BG_CACHE[mi] = renderMapBg(WORLD[mi].id, mapRows(mi)))) : FM.world[mi].bg;
 const disc = (g, cx, cy, rx, ry, fn) => { for (let y = -ry; y <= ry; y++) for (let x = -rx; x <= rx; x++){ const d = x * x / (rx * rx) + y * y / (ry * ry); if (d <= 1){ const c = fn(d, x, y); if (c) fP(g, cx + x, cy + y, c); } } };
-function renderMapBg(mi){
-  const id = WORLD[mi].id, rows = mapRows(mi);
+function renderMapBg(id, rows){
   const c = document.createElement('canvas'); c.width = FW * FT; c.height = FH * FT;
   const g = c.getContext('2d');
   const GROUND = { farm:['#7cc84c', '#5cb03c'], park:['#8cd45c', '#6cbc3c'], maze:['#6cb048', '#5a9c3c'], space:['#262046', '#3a3266'], beach:['#f0d89a', '#dcc07a'] }[id];
@@ -810,6 +840,10 @@ function renderMapBg(mi){
       else if (id === 'park' || id === 'maze') hedge(ox, oy);
       else if (id === 'space') rock(ox, oy, '#8a8aa0', '#6a6a80');
       else rock(ox, oy, '#a89a88', '#8a7a68');
+    }
+    else if (ch === 'V'){   // 上下的入口：地上畫箭頭
+      const dir = y === 0 ? -1 : 1, col = '#e8f4d0';
+      for (let k = 0; k < 3; k++){ const cy = oy + 8 + dir * (k * 3 - 3); fP(g, ox + 7, cy, col, 2, 2); fP(g, ox + 5, cy - dir, col, 2, 2); fP(g, ox + 9, cy - dir, col, 2, 2); }
     }
     else if (ch === 'E'){   // 入口：地上畫箭頭
       const dir = x === 0 ? -1 : 1, col = id === 'space' ? '#9a8aff' : id === 'beach' ? '#c8a050' : '#e8f4d0';
@@ -848,12 +882,14 @@ function renderMapBg(mi){
   const planet = first('P');
   if (planet){ const [px, py] = planet; disc(g, px + 16, py + 16, 12, 12, (d, xx, yy) => d > .88 ? INK : (xx + yy > 6 ? '#c86a3a' : '#e8904c')); fP(g, px - 1, py + 15, '#ffd890', 34, 2); fP(g, px - 1, py + 17, INK, 34, 1); }
   // 入口兩邊的石柱
-  [0, FW - 1].forEach(x => [5, 9].forEach(y => { const ox = x * FT, oy = y * FT; fP(g, ox + 1, oy - 4, INK, 14, 20); fP(g, ox + 2, oy - 3, '#b8b8c8', 12, 18); fP(g, ox + 2, oy - 3, '#d8d8e4', 12, 3); fP(g, ox + 2, oy + 12, '#9898a8', 12, 3); fP(g, ox + 7, oy - 7, '#e83838', 1, 4); fP(g, ox + 8, oy - 7, '#ffd23c', 3, 2); }));
+  const pillar = (ox, oy) => { fP(g, ox + 1, oy - 4, INK, 14, 20); fP(g, ox + 2, oy - 3, '#b8b8c8', 12, 18); fP(g, ox + 2, oy - 3, '#d8d8e4', 12, 3); fP(g, ox + 2, oy + 12, '#9898a8', 12, 3); fP(g, ox + 7, oy - 7, '#e83838', 1, 4); fP(g, ox + 8, oy - 7, '#ffd23c', 3, 2); };
+  [0, FH - 1].forEach(y => { const xs = [...rows[y]].map((c, x) => c === 'V' ? x : -1).filter(x => x >= 0); if (xs.length){ pillar((xs[0] - 1) * FT, y * FT); pillar((xs[xs.length - 1] + 1) * FT, y * FT); } });
+  if (rows[7][0] === 'E') [0, FW - 1].forEach(x => [5, 9].forEach(y => { const ox = x * FT, oy = y * FT; fP(g, ox + 1, oy - 4, INK, 14, 20); fP(g, ox + 2, oy - 3, '#b8b8c8', 12, 18); fP(g, ox + 2, oy - 3, '#d8d8e4', 12, 3); fP(g, ox + 2, oy + 12, '#9898a8', 12, 3); fP(g, ox + 7, oy - 7, '#e83838', 1, 4); fP(g, ox + 8, oy - 7, '#ffd23c', 3, 2); }));
   return c;
 }
 const fWalk = (x, y, skip) => {
   const rows = mapRows(FM ? FM.mi : 0);
-  return x >= 0 && y >= 0 && x < FW && y < FH && !FSOLID.includes(rows[y][x]) && !(FM && FM.animals.some(a => a !== skip && a.x === x && a.y === y));
+  return x >= 0 && y >= 0 && x < FW && y < FH && !FSOLID.includes(rows[y][x]) && !(rows[y][x] === 'V' && !(FM && FM.bonus)) && !(FM && FM.animals.some(a => a !== skip && a.x === x && a.y === y));
 };
 // 第一次走進一張地圖：把住在這裡、還沒跟著你的動物放上去（不放在入口附近）
 function populate(mi){
@@ -870,15 +906,15 @@ function populate(mi){
   FM.world[mi] = { animals:list };
 }
 // 跟著你的動物排在小朋友後面（從入口那一邊跟進來）
-function resetTrail(side){
+function resetTrail(side, vy = 0){
   const me = FM.me, hist = [];
-  for (let k = 200; k > 0; k--) hist.push({ x:Math.min((FW - 1) * FT, Math.max(0, me.px + side * k * 2)), y:me.py });
+  for (let k = 200; k > 0; k--) hist.push({ x:Math.min((FW - 1) * FT, Math.max(0, me.px + side * k * 2)), y:Math.min((FH - 1) * FT, Math.max(0, me.py + vy * k * 2)) });
   hist.push({ x:me.px, y:me.py });
   FM.hist = hist;
 }
-function farmStart(){
-  const me = { x:11, y:13, px:11 * FT, py:13 * FT, path:[], face:1 };
-  FM = { mi:0, world:[], me, hist:[], target:null, frame:0, flash:{}, cv:$('farmCv') };
+function farmStart(bonus){
+  const me = { x:11, y:12, px:11 * FT, py:12 * FT, path:[], face:1 };
+  FM = { mi:0, world:[], me, hist:[], target:null, frame:0, flash:{}, cv:$('farmCv'), bonus:!!bonus };
   Object.defineProperty(FM, 'animals', { get(){ return this.world[this.mi].animals; }, set(v){ this.world[this.mi].animals = v; } });
   populate(0);
   resetTrail(-1);
@@ -898,16 +934,53 @@ function switchMap(dir){
   if (say) say.innerHTML = `${Z('ㄌㄞˊ ㄉㄠˋ', '來到')}${Z(w.name[1], w.name[0])}${Z('˙ㄌㄜ！', '了！')}`;
   setTimeout(() => speak('來到' + w.name[0]), 150);
 }
+// 上下的入口：農場 ⇄ 罐子迷宮
+function switchMaze(toMi, fromY){
+  const M = FM, me = M.me, goUp = fromY === 0;
+  M.mi = toMi;
+  if (toMi >= WORLD.length && !M.world[toMi]) M.world[toMi] = makeMaze(toMi === MAZE_UP);
+  if (toMi >= WORLD.length) me.x = 11;
+  me.y = goUp ? FH - 2 : 1;
+  me.px = me.x * FT; me.py = me.y * FT; me.path = []; M.target = null;
+  resetTrail(0, goUp ? 1 : -1);
+  closeAsk(); mapLabels(); SFX.blip();
+  const say = $('farmSay');
+  if (toMi >= WORLD.length){
+    const left = M.world[toMi].cans.length;
+    if (say) say.innerHTML = left ? `${Z(MAZE_NAME[0], MAZE_NAME[1])}${Z('ㄌㄧˇ ˙ㄇㄧㄢ ㄧㄡˇ', '裡面有')} ${left} ${Z('ㄍㄜˋ ㄍㄨㄢˋ ˙ㄗ，ㄗㄡˇ ㄍㄨㄛˋ ㄑㄩˋ ㄐㄧㄢˇ！', '個罐子，走過去撿！')}` : Z('ㄍㄨㄢˋ ˙ㄗ ㄉㄡ ㄐㄧㄢˇ ㄨㄢˊ ˙ㄌㄜ！', '罐子都撿完了！');
+    setTimeout(() => speak('罐子迷宮'), 150);
+  } else if (say) say.innerHTML = `${Z('ㄏㄨㄟˊ ㄉㄠˋ', '回到')}${Z(WORLD[0].name[1], WORLD[0].name[0])}${Z('˙ㄌㄜ！', '了！')}`;
+}
+// 走到罐子上就撿起來
+function pickCan(){
+  const w = FM.world[FM.mi], me = FM.me; if (!w || !w.cans) return;
+  const k = w.cans.findIndex(c => c.x === me.x && c.y === me.y); if (k < 0) return;
+  w.cans.splice(k, 1); QZS.cans++; qzSave(); SFX.ok();
+  $('farmCans').innerHTML = canHtml(QZS.cans);
+  const say = $('farmSay');
+  if (say) say.innerHTML = w.cans.length ? `${Z('ㄐㄧㄢˇ ㄉㄠˋ ㄧ ㄍㄨㄢˋ！ㄏㄞˊ ㄧㄡˇ', '撿到一罐！還有')} ${w.cans.length} ${Z('ㄍㄨㄢˋ', '罐')}` : Z('ㄓㄜˋ ㄍㄜˋ ㄇㄧˊ ㄍㄨㄥ ˙ㄉㄜ ㄍㄨㄢˋ ˙ㄗ ㄉㄡ ㄐㄧㄢˇ ㄨㄢˊ ˙ㄌㄜ！', '這個迷宮的罐子都撿完了！');
+}
 function mapLabels(){
-  const n = WORLD.length, prev = WORLD[(FM.mi + n - 1) % n], next = WORLD[(FM.mi + 1) % n], cur = WORLD[FM.mi];
-  const set = (id, html) => { const el = $(id); if (el) el.innerHTML = html; };
-  set('gateL', `◀ ${Z(prev.name[1], prev.name[0])}`);
-  set('gateR', `${Z(next.name[1], next.name[0])} ▶`);
-  set('mapName', Z(cur.name[1], cur.name[0]));
+  const n = WORLD.length, set = (id, html) => { const el = $(id); if (el){ el.innerHTML = html; el.hidden = !html; } };
+  const zn = w => Z(w.name[1], w.name[0]), farm = WORLD[0];
+  if (FM.mi >= WORLD.length){   // 罐子迷宮：只有回農場的入口
+    const up = FM.mi === MAZE_UP;
+    set('gateL', ''); set('gateR', '');
+    set('gateU', up ? '' : `▲ ${zn(farm)}`); set('gateD', up ? `${zn(farm)} ▼` : '');
+    set('mapName', Z(MAZE_NAME[0], MAZE_NAME[1]));
+    return;
+  }
+  const prev = WORLD[(FM.mi + n - 1) % n], next = WORLD[(FM.mi + 1) % n], cur = WORLD[FM.mi];
+  set('gateL', `◀ ${zn(prev)}`);
+  set('gateR', `${zn(next)} ▶`);
+  const mz = FM.bonus ? Z(MAZE_NAME[0], MAZE_NAME[1]) : `🔒 ${Z('ㄑㄩㄢˊ ㄉㄨㄟˋ ㄘㄞˊ ㄎㄞ', '全對才開')}`;
+  set('gateU', FM.mi === 0 ? `▲ ${mz}` : ''); set('gateD', FM.mi === 0 ? `${mz} ▼` : '');
+  set('mapName', zn(cur));
 }
 // 飼料罐用完了：一定要按「確定」回去重新答題蒐集
 function showRefill(){
-  const farm = qzEl().querySelector('.farm'); if (!farm || farm.querySelector('.farm-block')) return;
+  const farm = qzEl().querySelector('.farm'); if (!farm || farm.querySelector('.farm-block') || QZS.cans > 0) return;
+  if (bonusLeft()){ const say = $('farmSay'); if (say) say.innerHTML = Z('ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ ㄩㄥˋ ㄨㄢˊ ˙ㄌㄜ，ㄑㄩˋ ㄍㄨㄢˋ ˙ㄗ ㄇㄧˊ ㄍㄨㄥ ㄐㄧㄢˇ ㄍㄨㄢˋ ˙ㄗ！', '飼料罐用完了，去罐子迷宮撿罐子！'); return; }
   closeAsk();
   const box = document.createElement('div');
   box.className = 'farm-block';
@@ -933,7 +1006,7 @@ function petStep(){
     let spot = null;
     for (let r = 0; r < 6 && !spot; r++) for (let dy = -r; dy <= r && !spot; dy++) for (let dx = -r; dx <= r && !spot; dx++){
       const x = sx + dx, y = sy + dy;
-      if (fWalk(x, y) && mapRows(FM.mi)[y][x] !== 'E' && !(x === FM.me.x && y === FM.me.y) && !FM.me.path.some(([px, py]) => px === x && py === y)) spot = { x, y };
+      if (fWalk(x, y) && !'EV'.includes(mapRows(FM.mi)[y][x]) && !(x === FM.me.x && y === FM.me.y) && !FM.me.path.some(([px, py]) => px === x && py === y)) spot = { x, y };
     }
     QZS.pets.splice(k, 1); delete QZS.petSteps[id];
     if (spot) FM.animals.push({ ...farmBy(id), sp:spOf(id), id, x:spot.x, y:spot.y, bob:0, munch:0 });
@@ -1028,6 +1101,8 @@ function farmLoop(){
     if (me.px === gx && me.py === gy){
       me.x = tx; me.y = ty; me.path.shift(); petStep();
       if (mapRows(M.mi)[ty][tx] === 'E'){ switchMap(tx === 0 ? -1 : 1); requestAnimationFrame(farmLoop); return; }
+      if (mapRows(M.mi)[ty][tx] === 'V'){ switchMaze(M.mi === 0 ? (ty === 0 ? MAZE_UP : MAZE_DOWN) : 0, ty); requestAnimationFrame(farmLoop); return; }
+      pickCan();
       if (!me.path.length && M.target){ const a = M.target; M.target = null; if (M.animals.includes(a) && nextTo(a, me.x, me.y)) feedAnimal(a); }
     }
   }
@@ -1039,6 +1114,15 @@ function drawFarm(){
   g.imageSmoothingEnabled = false;
   g.drawImage(getBg(M.mi), 0, 0);
   const ents = [];
+  const w = M.world[M.mi];
+  if (w && w.cans) w.cans.forEach(c => ents.push({ y:c.y * FT - 1, f:() => {
+    const bob = Math.floor((M.frame + c.x * 5) / 20) % 2 ? -1 : 0;
+    fP(g, c.x * FT + 3, c.y * FT + 13, 'rgba(0,0,0,.2)', 10, 2); g.drawImage(sprite('🥫'), c.x * FT - 1, c.y * FT - 2 + bob);
+  } }));
+  if (M.mi === 0 && !M.bonus) [0, FH - 1].forEach(y => {   // 沒有全對：上下入口用木柵欄和鎖擋著
+    const ox = 11 * FT, oy = y * FT; fP(g, ox, oy + 4, INK, FT * 2, 8); fP(g, ox, oy + 5, '#8a5a2c', FT * 2, 6);
+    fP(g, ox + 10, oy + 1, INK, 12, 13); fP(g, ox + 11, oy + 6, '#ffd23c', 10, 7); fP(g, ox + 12, oy + 2, INK, 1, 4); fP(g, ox + 19, oy + 2, INK, 1, 4); fP(g, ox + 15, oy + 8, INK, 2, 3);
+  });
   M.animals.forEach(a => ents.push({ y:a.y * FT, f:() => {
     const bob = a.munch > 0 ? (a.munch-- % 8 < 4 ? -2 : 0) : (Math.floor((M.frame + a.bob) / 30) % 2 ? -1 : 0);
     fP(g, a.x * FT + 2, a.y * FT + 14, 'rgba(0,0,0,.2)', 12, 2);
@@ -1090,10 +1174,11 @@ function qzFarm(res){
       : QZS.cans ? Z('ㄉㄧㄢˇ ㄉㄨㄥˋ ㄨˋ，ㄗㄡˇ ㄍㄨㄛˋ ㄑㄩˋ ㄨㄟˋ ㄊㄚ！', '點動物，走過去餵牠！')
       : Z('ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ ㄩㄥˋ ㄨㄢˊ ˙ㄌㄜ，ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ ˙ㄅㄚ！', '飼料罐用完了，再玩一次吧！')}</span><span id="farmCans">${canHtml(QZS.cans)}</span></div>
     <div class="map-wrap"><canvas class="farm-cv" id="farmCv" width="${FW * FT}" height="${FH * FT}" aria-label="地圖：點地圖走路，點動物餵牠，走進左右的入口到隔壁的地圖"></canvas>
-      <span class="gate-lab l" id="gateL"></span><span class="gate-lab r" id="gateR"></span><span class="map-name" id="mapName"></span></div>
+      <span class="gate-lab l" id="gateL"></span><span class="gate-lab r" id="gateR"></span><span class="gate-lab u" id="gateU" hidden></span><span class="gate-lab d" id="gateD" hidden></span><span class="map-name" id="mapName"></span></div>
     <div class="qz-row"><button class="btn" data-qz="again" data-focus>🔁 ${Z('ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ', '再玩一次')}</button></div>
   </div>`;
-  farmStart();
+  farmStart(res && res.total && res.got === res.total);
+  if (FM.bonus){ $('farmSay').innerHTML = `🎉 ${Z('ㄑㄩㄢˊ ㄅㄨˋ ㄉㄚˊ ㄉㄨㄟˋ！ㄕㄤˋ ㄒㄧㄚˋ ˙ㄉㄜ ㄇㄧˊ ㄍㄨㄥ ㄉㄚˇ ㄎㄞ ˙ㄌㄜ', '全部答對！上下的迷宮打開了')}`; setTimeout(() => speak('全部答對！上下的迷宮打開了'), 400); }
   if (!QZS.cans) showRefill(); else focusFirst();
 }
 
@@ -1141,7 +1226,7 @@ const HELP_KID = [
   ['🐷', 'ㄗㄞˋ ㄋㄨㄥˊ ㄔㄤˇ ㄨㄟˋ ㄉㄨㄥˋ ㄨˋ', '在農場餵動物'],
   ['🐾', 'ㄨㄟˋ ㄍㄨㄛˋ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ ㄏㄨㄟˋ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ', '餵過的動物會跟著你'],
   ['😋', 'ㄗㄡˇ ㄊㄞˋ ㄐㄧㄡˇ，ㄉㄨㄥˋ ㄨˋ ㄏㄨㄟˋ ㄜˋ ˙ㄉㄜ ㄉㄧㄠˋ ㄉㄨㄟˋ', '走太久，動物會餓得掉隊']];
-const HELP_PARENT = '每次開始先選難度和題數：簡單二選一、中等三選一、困難四選一；題數 10、20 或 30 題（預設 10 題），按「確定」開始。畫面中間是一個東西或動作的像素圖和國字，下面是注音選項，選出正確的那一個（電腦也可以按 1～4）。題庫有 108 個一年級常用詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。答對會有「叮叮叮」的音效、電腦會唸出這個詞；上方有一排空罐，題數幾題就有幾個，第一次就答對的題目，罐子就會裝滿飼料；題目做完時，簡單每答對一題拿 1 罐、中等拿 2 罐、困難拿 3 罐；答錯會有低沉的「嗶嗶」聲，這一題就拿不到罐子，可以再選到對為止。家長不用在旁邊，聽聲音就知道孩子答得對不對。題目做完會到農場地圖（左右有大入口，連著公園、迷宮、外太空、海邊，往同一邊走五張會回到農場；15 種動物分散住在這五張地圖）：動物散在地圖上，點地圖小朋友就會走過去，點動物會走到牠旁邊餵一罐（電腦也可以用方向鍵走路，撞到動物就餵），餵一罐動物就會排在後面跟著你走，可以一直餵下一隻；每種動物各有 2 隻；跟著你的動物走路時頭上會顯示血條，走的步數超過地圖的格子數（24×15＝360 步）就會肚子餓、掉隊，留在原地等你再去餵；點跟著你的動物會顯示牠的血條和還可以走幾步，並問要不要現在餵牠，餵一罐血條就補滿；沒用完的飼料罐和跟著你的動物會留到下次。也可以不餵，直接按「再玩一次」。飼料罐用完時會跳出「重新蒐集飼料罐」，按確定回去答題。上方的「錯題紀錄」隨時可以看，會統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，也可以清空；之後出題時會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
+const HELP_PARENT = '每次開始先選難度和題數：簡單二選一、中等三選一、困難四選一；題數 10、20 或 30 題（預設 10 題），按「確定」開始。畫面中間是一個東西或動作的像素圖和國字，下面是注音選項，選出正確的那一個（電腦也可以按 1～4）。題庫有 108 個一年級常用詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。答對會有「叮叮叮」的音效、電腦會唸出這個詞；上方有一排空罐，題數幾題就有幾個，第一次就答對的題目，罐子就會裝滿飼料；題目做完時，簡單每答對一題拿 1 罐、中等拿 2 罐、困難拿 3 罐；答錯會有低沉的「嗶嗶」聲，這一題就拿不到罐子，可以再選到對為止。家長不用在旁邊，聽聲音就知道孩子答得對不對。題目做完會到農場地圖（左右有大入口，連著公園、迷宮、外太空、海邊，往同一邊走五張會回到農場；15 種動物分散住在這五張地圖）：動物散在地圖上，點地圖小朋友就會走過去，點動物會走到牠旁邊餵一罐（電腦也可以用方向鍵走路，撞到動物就餵），餵一罐動物就會排在後面跟著你走，可以一直餵下一隻；每種動物各有 2 隻；跟著你的動物走路時頭上會顯示血條，走的步數超過地圖的格子數（24×15＝360 步）就會肚子餓、掉隊，留在原地等你再去餵；點跟著你的動物會顯示牠的血條和還可以走幾步，並問要不要現在餵牠，餵一罐血條就補滿；沒用完的飼料罐和跟著你的動物會留到下次。也可以不餵，直接按「再玩一次」。如果題目全部第一次就答對，農場上下的入口會打開，通到「罐子迷宮」（每次全對都會重新變一個），迷宮的路上有罐子可以撿；飼料罐用完而且迷宮也沒有罐子時，會跳出「重新蒐集飼料罐」，按確定回去答題。上方的「錯題紀錄」隨時可以看，會統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，也可以清空；之後出題時會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
 function openHelp(){
   SFX.blip();
   $('modal').innerHTML = `<div class="qz-panel">

@@ -190,6 +190,9 @@ button{font:inherit;color:inherit}
 .gate-lab{position:absolute;top:31%;translate:0 -50%;z-index:2;pointer-events:none;font-weight:900;font-size:clamp(12px,1.6vw,16px);background:var(--paper);border:3px solid var(--ink);padding:0 6px;white-space:nowrap}
 .gate-lab.l{left:4px}.gate-lab.r{right:4px}
 .gate-lab.u,.gate-lab.d{left:calc(100% * 14 / 24 + 2px);translate:none}.gate-lab.u{top:2px}.gate-lab.d{top:auto;bottom:2px}
+.map-name small{font-size:.75em}
+.mz-time{display:inline-block;min-width:1.4em;text-align:center;font-family:var(--f-px);font-size:.8em}
+.mz-time.hurry{color:var(--red)}
 .map-name{position:absolute;top:2px;left:calc(100% * 3 / 24);pointer-events:none;font-weight:900;font-size:clamp(14px,1.8vw,18px);color:var(--ink);background:var(--gold);border:3px solid var(--ink);padding:0 10px}
 .farm-block{position:absolute;inset:0;z-index:6;background:rgba(18,20,60,.45)}
 .farm-cv{display:block;width:100%;max-width:100%;aspect-ratio:16/10;image-rendering:pixelated;image-rendering:crisp-edges;border:4px solid var(--ink);box-shadow:6px 6px 0 rgba(0,0,0,.25);cursor:pointer;touch-action:manipulation}
@@ -377,7 +380,106 @@ const QZ_WORDS = [
   ['🎨','畫畫','ㄏㄨㄚˋ ㄏㄨㄚˋ','fh,tone'], ['😢','哭','ㄎㄨ','gk,tone'], ['😄','笑','ㄒㄧㄠˋ','tone'], ['🛁','洗澡','ㄒㄧˇ ㄗㄠˇ','zh,tone'],
   ['🧹','掃地','ㄙㄠˇ ㄉㄧˋ','zh,dt'], ['👋','揮手','ㄏㄨㄟ ㄕㄡˇ','fh,zh'], ['👂','耳朵','ㄦˇ ˙ㄉㄨㄛ','dt,tone'], ['👀','眼睛','ㄧㄢˇ ˙ㄐㄧㄥ','an,eng'],
   ['👃','鼻子','ㄅㄧˊ ˙ㄗ','bp,tone'], ['✋','手','ㄕㄡˇ','zh,tone'], ['🦷','牙齒','ㄧㄚˊ ㄔˇ','zh,tone'], ['❤️','愛心','ㄞˋ ㄒㄧㄣ','eng'],
-  ['🎁','禮物','ㄌㄧˇ ㄨˋ','ld,tone'], ['🐭','老鼠','ㄌㄠˇ ㄕㄨˇ','ld,zh'], ['🐧','企鵝','ㄑㄧˋ ㄜˊ','tone'], ['🦊','狐狸','ㄏㄨˊ ˙ㄌㄧ','fh,ld']
+  ['🎁','禮物','ㄌㄧˇ ㄨˋ','ld,tone'], ['🐭','老鼠','ㄌㄠˇ ㄕㄨˇ','ld,zh'], ['🐧','企鵝','ㄑㄧˋ ㄜˊ','tone'], ['🦊','狐狸','ㄏㄨˊ ˙ㄌㄧ','fh,ld'],
+  // ---- 擴充：動物、食物、自然、地方、交通、用品、運動、人物、動作心情、形狀顏色 ----
+  ['🐺','狼','ㄌㄤˊ','an,ld'], ['🦓','斑馬','ㄅㄢ ㄇㄚˇ','bp,an'], ['🦏','犀牛','ㄒㄧ ㄋㄧㄡˊ','ld,yu'], ['🦛','河馬','ㄏㄜˊ ㄇㄚˇ','fh,tone'],
+  ['🐪','駱駝','ㄌㄨㄛˋ ㄊㄨㄛˊ','dt,ld'], ['🦘','袋鼠','ㄉㄞˋ ㄕㄨˇ','ld,zh'], ['🐨','無尾熊','ㄨˊ ㄨㄟˇ ㄒㄩㄥˊ','eng,yu'], ['🐿️','松鼠','ㄙㄨㄥ ㄕㄨˇ','zh,eng'],
+  ['🦔','刺蝟','ㄘˋ ㄨㄟˋ','zh,tone'], ['🦇','蝙蝠','ㄅㄧㄢ ㄈㄨˊ','an,bp'], ['🐊','鱷魚','ㄜˋ ㄩˊ','yu,tone'], ['🦎','蜥蜴','ㄒㄧ ㄧˋ','yu,tone'],
+  ['🦖','恐龍','ㄎㄨㄥˇ ㄌㄨㄥˊ','ld,gk'], ['🐉','龍','ㄌㄨㄥˊ','ld,eng'], ['🐬','海豚','ㄏㄞˇ ㄊㄨㄣˊ','eng,fh'], ['🦐','蝦子','ㄒㄧㄚ ˙ㄗ','zh,tone'],
+  ['🦑','魷魚','ㄧㄡˊ ㄩˊ','yu,tone'], ['🐚','貝殼','ㄅㄟˋ ㄎㄜˊ','gk,bp'], ['🐌','蝸牛','ㄨㄛ ㄋㄧㄡˊ','ld,tone'], ['🐛','毛毛蟲','ㄇㄠˊ ㄇㄠˊ ㄔㄨㄥˊ','eng,zh'],
+  ['🐞','瓢蟲','ㄆㄧㄠˊ ㄔㄨㄥˊ','eng,bp'], ['🦗','蟋蟀','ㄒㄧ ㄕㄨㄞˋ','yu,zh'], ['🕷️','蜘蛛','ㄓ ㄓㄨ','zh,tone'], ['🦟','蚊子','ㄨㄣˊ ˙ㄗ','zh,eng'],
+  ['🐤','小雞','ㄒㄧㄠˇ ㄐㄧ','yu,tone'], ['🦃','火雞','ㄏㄨㄛˇ ㄐㄧ','fh,yu'], ['🦚','孔雀','ㄎㄨㄥˇ ㄑㄩㄝˋ','gk,yu'], ['🦜','鸚鵡','ㄧㄥ ㄨˇ','eng,yu'],
+  ['🦢','天鵝','ㄊㄧㄢ ㄜˊ','an,dt'], ['🕊️','鴿子','ㄍㄜ ˙ㄗ','gk,zh'], ['🦅','老鷹','ㄌㄠˇ ㄧㄥ','eng,ld'], ['🐐','山羊','ㄕㄢ ㄧㄤˊ','zh,an'],
+  ['🐃','水牛','ㄕㄨㄟˇ ㄋㄧㄡˊ','ld,zh'], ['🐄','乳牛','ㄖㄨˇ ㄋㄧㄡˊ','ld,tone'], ['🐖','豬','ㄓㄨ','zh,tone'], ['🐕','狗','ㄍㄡˇ','gk,tone'],
+  ['🐈','貓咪','ㄇㄠ ㄇㄧ','tone'], ['🐇','兔子','ㄊㄨˋ ˙ㄗ','zh,dt'], ['🦌','鹿','ㄌㄨˋ','ld,tone'], ['🐆','花豹','ㄏㄨㄚ ㄅㄠˋ','bp,fh'],
+  ['🦍','大猩猩','ㄉㄚˋ ㄒㄧㄥ ˙ㄒㄧㄥ','dt,ld'], ['🐗','山豬','ㄕㄢ ㄓㄨ','zh,an'], ['🐾','腳印','ㄐㄧㄠˇ ㄧㄣˋ','eng,yu'], ['🦄','獨角獸','ㄉㄨˊ ㄐㄧㄠˇ ㄕㄡˋ','zh,dt'],
+  ['🪱','蚯蚓','ㄑㄧㄡ ㄧㄣˇ','yu,eng'], ['🦞','龍蝦','ㄌㄨㄥˊ ㄒㄧㄚ','eng,ld'], ['🐹','倉鼠','ㄘㄤ ㄕㄨˇ','an,zh'], ['🍍','鳳梨','ㄈㄥˋ ㄌㄧˊ','ld,eng'],
+  ['🥭','芒果','ㄇㄤˊ ㄍㄨㄛˇ','gk,an'], ['🥝','奇異果','ㄑㄧˊ ㄧˋ ㄍㄨㄛˇ','gk,yu'], ['🍒','櫻桃','ㄧㄥ ㄊㄠˊ','eng,yu'], ['🥥','椰子','ㄧㄝˊ ˙ㄗ','yu,zh'],
+  ['🍈','哈密瓜','ㄏㄚ ㄇㄧˋ ㄍㄨㄚ','fh,gk'], ['🍅','番茄','ㄈㄢ ㄑㄧㄝˊ','yu,an'], ['🍆','茄子','ㄑㄧㄝˊ ˙ㄗ','zh,yu'], ['🥦','花椰菜','ㄏㄨㄚ ㄧㄝˊ ㄘㄞˋ','zh,yu'],
+  ['🥬','青菜','ㄑㄧㄥ ㄘㄞˋ','yu,eng'], ['🥒','小黃瓜','ㄒㄧㄠˇ ㄏㄨㄤˊ ㄍㄨㄚ','gk,an'], ['🌶️','辣椒','ㄌㄚˋ ㄐㄧㄠ','ld,tone'], ['🧄','大蒜','ㄉㄚˋ ㄙㄨㄢˋ','an,zh'],
+  ['🧅','洋蔥','ㄧㄤˊ ㄘㄨㄥ','zh,eng'], ['🥔','馬鈴薯','ㄇㄚˇ ㄌㄧㄥˊ ㄕㄨˇ','ld,zh'], ['🍠','地瓜','ㄉㄧˋ ㄍㄨㄚ','gk,dt'], ['🥜','花生','ㄏㄨㄚ ㄕㄥ','fh,eng'],
+  ['🌰','栗子','ㄌㄧˋ ˙ㄗ','ld,zh'], ['🍄','香菇','ㄒㄧㄤ ㄍㄨ','gk,an'], ['🍏','青蘋果','ㄑㄧㄥ ㄆㄧㄥˊ ㄍㄨㄛˇ','gk,bp'], ['🍔','漢堡','ㄏㄢˋ ㄅㄠˇ','an,bp'],
+  ['🍟','薯條','ㄕㄨˇ ㄊㄧㄠˊ','zh,dt'], ['🍕','披薩','ㄆㄧ ㄙㄚˋ','zh,bp'], ['🌭','熱狗','ㄖㄜˋ ㄍㄡˇ','gk,tone'], ['🥪','三明治','ㄙㄢ ㄇㄧㄥˊ ㄓˋ','zh,an'],
+  ['🍳','煎蛋','ㄐㄧㄢ ㄉㄢˋ','an,ld'], ['🍗','雞腿','ㄐㄧ ㄊㄨㄟˇ','yu,dt'], ['🍖','肉','ㄖㄡˋ','tone'], ['🍙','飯糰','ㄈㄢˋ ㄊㄨㄢˊ','dt,fh'],
+  ['🍣','壽司','ㄕㄡˋ ㄙ','zh,tone'], ['🍱','便當','ㄅㄧㄢˋ ㄉㄤ','an,dt'], ['🍲','火鍋','ㄏㄨㄛˇ ㄍㄨㄛ','fh,gk'], ['🥣','稀飯','ㄒㄧ ㄈㄢˋ','fh,yu'],
+  ['🥗','沙拉','ㄕㄚ ㄌㄚ','zh,ld'], ['🍿','爆米花','ㄅㄠˋ ㄇㄧˇ ㄏㄨㄚ','bp,fh'], ['🧂','鹽','ㄧㄢˊ','yu,an'], ['🥫','罐頭','ㄍㄨㄢˋ ˙ㄊㄡ','an,dt'],
+  ['🍩','甜甜圈','ㄊㄧㄢˊ ㄊㄧㄢˊ ㄑㄩㄢ','yu,dt'], ['🍪','餅乾','ㄅㄧㄥˇ ㄍㄢ','eng,an'], ['🎂','生日蛋糕','ㄕㄥ ㄖˋ ㄉㄢˋ ㄍㄠ','zh,eng'], ['🍫','巧克力','ㄑㄧㄠˇ ㄎㄜˋ ㄌㄧˋ','ld,gk'],
+  ['🍭','棒棒糖','ㄅㄤˋ ㄅㄤˋ ㄊㄤˊ','an,dt'], ['🍮','布丁','ㄅㄨˋ ㄉㄧㄥ','ld,eng'], ['🍯','蜂蜜','ㄈㄥ ㄇㄧˋ','fh,eng'], ['🍼','奶瓶','ㄋㄞˇ ㄆㄧㄥˊ','bp,ld'],
+  ['☕','咖啡','ㄎㄚ ㄈㄟ','gk,fh'], ['🍵','茶','ㄔㄚˊ','zh,tone'], ['🧃','果汁','ㄍㄨㄛˇ ㄓ','gk,zh'], ['🥤','飲料','ㄧㄣˇ ㄌㄧㄠˋ','eng,ld'],
+  ['🧊','冰塊','ㄅㄧㄥ ㄎㄨㄞˋ','gk,eng'], ['🥢','筷子','ㄎㄨㄞˋ ˙ㄗ','zh,gk'], ['🥄','湯匙','ㄊㄤ ㄔˊ','dt,zh'], ['🍴','叉子','ㄔㄚ ˙ㄗ','zh,tone'],
+  ['🔪','菜刀','ㄘㄞˋ ㄉㄠ','dt,zh'], ['🥮','月餅','ㄩㄝˋ ㄅㄧㄥˇ','yu,eng'], ['🌾','稻子','ㄉㄠˋ ˙ㄗ','dt,zh'], ['🦴','骨頭','ㄍㄨˇ ˙ㄊㄡ','dt,gk'],
+  ['🌍','地球','ㄉㄧˋ ㄑㄧㄡˊ','dt,ld'], ['🌋','火山','ㄏㄨㄛˇ ㄕㄢ','fh,an'], ['🏝️','小島','ㄒㄧㄠˇ ㄉㄠˇ','dt,ld'], ['🏖️','沙灘','ㄕㄚ ㄊㄢ','zh,dt'],
+  ['🏜️','沙漠','ㄕㄚ ㄇㄛˋ','zh,tone'], ['🌲','松樹','ㄙㄨㄥ ㄕㄨˋ','eng,zh'], ['🌴','椰子樹','ㄧㄝˊ ˙ㄗ ㄕㄨˋ','zh,yu'], ['🌵','仙人掌','ㄒㄧㄢ ㄖㄣˊ ㄓㄤˇ','zh,eng'],
+  ['🌱','發芽','ㄈㄚ ㄧㄚˊ','fh,tone'], ['🍃','樹葉','ㄕㄨˋ ㄧㄝˋ','zh,yu'], ['🍁','楓葉','ㄈㄥ ㄧㄝˋ','fh,yu'], ['🍂','落葉','ㄌㄨㄛˋ ㄧㄝˋ','yu,ld'],
+  ['🌷','鬱金香','ㄩˋ ㄐㄧㄣ ㄒㄧㄤ','eng,yu'], ['🌹','玫瑰','ㄇㄟˊ ㄍㄨㄟˋ','gk,tone'], ['🌻','向日葵','ㄒㄧㄤˋ ㄖˋ ㄎㄨㄟˊ','an,gk'], ['🌼','小花','ㄒㄧㄠˇ ㄏㄨㄚ','fh,tone'],
+  ['💐','花束','ㄏㄨㄚ ㄕㄨˋ','zh,fh'], ['🍀','幸運草','ㄒㄧㄥˋ ㄩㄣˋ ㄘㄠˇ','yu,eng'], ['⚡','閃電','ㄕㄢˇ ㄉㄧㄢˋ','ld,zh'], ['🌪️','龍捲風','ㄌㄨㄥˊ ㄐㄩㄢˇ ㄈㄥ','yu,an'],
+  ['⛄','雪人','ㄒㄩㄝˇ ㄖㄣˊ','eng,yu'], ['🌤️','晴天','ㄑㄧㄥˊ ㄊㄧㄢ','yu,eng'], ['⛅','多雲','ㄉㄨㄛ ㄩㄣˊ','ld,eng'], ['🌩️','打雷','ㄉㄚˇ ㄌㄟˊ','dt,ld'],
+  ['🌅','日出','ㄖˋ ㄔㄨ','zh,tone'], ['🌠','流星','ㄌㄧㄡˊ ㄒㄧㄥ','yu,eng'], ['🌕','滿月','ㄇㄢˇ ㄩㄝˋ','yu,an'], ['💨','風','ㄈㄥ','eng,fh'],
+  ['🪨','石頭','ㄕˊ ˙ㄊㄡ','zh,dt'], ['🏞️','公園','ㄍㄨㄥ ㄩㄢˊ','an,eng'], ['🏔️','雪山','ㄒㄩㄝˇ ㄕㄢ','zh,yu'], ['🗺️','地圖','ㄉㄧˋ ㄊㄨˊ','dt,ld'],
+  ['🧭','指南針','ㄓˇ ㄋㄢˊ ㄓㄣ','ld,zh'], ['🌀','颱風','ㄊㄞˊ ㄈㄥ','dt,fh'], ['♨️','溫泉','ㄨㄣ ㄑㄩㄢˊ','yu,an'], ['🪵','木頭','ㄇㄨˋ ˙ㄊㄡ','dt,tone'],
+  ['🏫','學校','ㄒㄩㄝˊ ㄒㄧㄠˋ','yu,tone'], ['🏥','醫院','ㄧ ㄩㄢˋ','yu,an'], ['🏪','商店','ㄕㄤ ㄉㄧㄢˋ','an,dt'], ['🏰','城堡','ㄔㄥˊ ㄅㄠˇ','zh,eng'],
+  ['🏢','大樓','ㄉㄚˋ ㄌㄡˊ','ld,dt'], ['🌉','大橋','ㄉㄚˋ ㄑㄧㄠˊ','dt,ld'], ['⛺','帳篷','ㄓㄤˋ ˙ㄆㄥ','eng,bp'], ['🎡','摩天輪','ㄇㄛˊ ㄊㄧㄢ ㄌㄨㄣˊ','ld,an'],
+  ['🎢','雲霄飛車','ㄩㄣˊ ㄒㄧㄠ ㄈㄟ ㄔㄜ','fh,eng'], ['🎠','旋轉木馬','ㄒㄩㄢˊ ㄓㄨㄢˇ ㄇㄨˋ ㄇㄚˇ','an,yu'], ['⛲','噴水池','ㄆㄣ ㄕㄨㄟˇ ㄔˊ','bp,zh'], ['🏡','花園','ㄏㄨㄚ ㄩㄢˊ','yu,fh'],
+  ['🚏','公車站','ㄍㄨㄥ ㄔㄜ ㄓㄢˋ','zh,eng'], ['🚉','車站','ㄔㄜ ㄓㄢˋ','zh,an'], ['⛽','加油站','ㄐㄧㄚ ㄧㄡˊ ㄓㄢˋ','an,zh'], ['🚥','紅綠燈','ㄏㄨㄥˊ ㄌㄩˋ ㄉㄥ','dt,eng'],
+  ['🚕','計程車','ㄐㄧˋ ㄔㄥˊ ㄔㄜ','yu,zh'], ['🚓','警車','ㄐㄧㄥˇ ㄔㄜ','yu,eng'], ['🚑','救護車','ㄐㄧㄡˋ ㄏㄨˋ ㄔㄜ','fh,zh'], ['🚒','消防車','ㄒㄧㄠ ㄈㄤˊ ㄔㄜ','an,fh'],
+  ['🚚','卡車','ㄎㄚˇ ㄔㄜ','zh,gk'], ['🚜','拖拉機','ㄊㄨㄛ ㄌㄚ ㄐㄧ','ld,yu'], ['🏍️','機車','ㄐㄧ ㄔㄜ','zh,yu'], ['🚀','火箭','ㄏㄨㄛˇ ㄐㄧㄢˋ','an,fh'],
+  ['🚁','直升機','ㄓˊ ㄕㄥ ㄐㄧ','yu,eng'], ['⛵','帆船','ㄈㄢ ㄔㄨㄢˊ','zh,fh'], ['🚇','捷運','ㄐㄧㄝˊ ㄩㄣˋ','yu,eng'], ['🚄','高鐵','ㄍㄠ ㄊㄧㄝˇ','dt,gk'],
+  ['🛴','滑板車','ㄏㄨㄚˊ ㄅㄢˇ ㄔㄜ','zh,an'], ['🛹','滑板','ㄏㄨㄚˊ ㄅㄢˇ','an,bp'], ['🛼','溜冰鞋','ㄌㄧㄡ ㄅㄧㄥ ㄒㄧㄝˊ','bp,yu'], ['🚣','划船','ㄏㄨㄚˊ ㄔㄨㄢˊ','zh,an'],
+  ['🚸','過馬路','ㄍㄨㄛˋ ㄇㄚˇ ㄌㄨˋ','gk,ld'], ['🪑','椅子','ㄧˇ ˙ㄗ','zh,yu'], ['🛋️','沙發','ㄕㄚ ㄈㄚ','fh,zh'], ['🚽','馬桶','ㄇㄚˇ ㄊㄨㄥˇ','eng,dt'],
+  ['🚿','淋浴','ㄌㄧㄣˊ ㄩˋ','eng,ld'], ['🪥','刷牙','ㄕㄨㄚ ㄧㄚˊ','zh,tone'], ['🧼','肥皂','ㄈㄟˊ ㄗㄠˋ','fh,zh'], ['🧽','海綿','ㄏㄞˇ ㄇㄧㄢˊ','an,fh'],
+  ['🧻','衛生紙','ㄨㄟˋ ㄕㄥ ㄓˇ','eng,zh'], ['🪞','鏡子','ㄐㄧㄥˋ ˙ㄗ','yu,eng'], ['🪟','窗戶','ㄔㄨㄤ ㄏㄨˋ','zh,fh'], ['🔑','鑰匙','ㄧㄠˋ ˙ㄕ','zh,tone'],
+  ['🔒','鎖','ㄙㄨㄛˇ','zh,tone'], ['🛒','購物車','ㄍㄡˋ ㄨˋ ㄔㄜ','gk,zh'], ['💡','電燈泡','ㄉㄧㄢˋ ㄉㄥ ㄆㄠˋ','dt,ld'], ['🕯️','蠟燭','ㄌㄚˋ ㄓㄨˊ','ld,zh'],
+  ['🔦','手電筒','ㄕㄡˇ ㄉㄧㄢˋ ㄊㄨㄥˇ','zh,ld'], ['📺','電視','ㄉㄧㄢˋ ㄕˋ','an,zh'], ['📻','收音機','ㄕㄡ ㄧㄣ ㄐㄧ','zh,eng'], ['📱','手機','ㄕㄡˇ ㄐㄧ','zh,yu'],
+  ['☎️','電話','ㄉㄧㄢˋ ㄏㄨㄚˋ','dt,fh'], ['💻','電腦','ㄉㄧㄢˋ ㄋㄠˇ','dt,an'], ['📷','相機','ㄒㄧㄤˋ ㄐㄧ','yu,an'], ['🔋','電池','ㄉㄧㄢˋ ㄔˊ','zh,an'],
+  ['🔌','插頭','ㄔㄚ ㄊㄡˊ','zh,dt'], ['⌚','手錶','ㄕㄡˇ ㄅㄧㄠˇ','zh,bp'], ['⏳','沙漏','ㄕㄚ ㄌㄡˋ','ld,zh'], ['🕰️','時鐘','ㄕˊ ㄓㄨㄥ','zh,eng'],
+  ['📅','日曆','ㄖˋ ㄌㄧˋ','ld,tone'], ['📏','尺','ㄔˇ','zh,tone'], ['📐','三角板','ㄙㄢ ㄐㄧㄠˇ ㄅㄢˇ','zh,an'], ['🖍️','蠟筆','ㄌㄚˋ ㄅㄧˇ','ld,bp'],
+  ['🖊️','原子筆','ㄩㄢˊ ㄗˇ ㄅㄧˇ','yu,bp'], ['🖌️','水彩筆','ㄕㄨㄟˇ ㄘㄞˇ ㄅㄧˇ','bp,zh'], ['📓','筆記本','ㄅㄧˇ ㄐㄧˋ ㄅㄣˇ','yu,bp'], ['📄','紙','ㄓˇ','zh,tone'],
+  ['✉️','信封','ㄒㄧㄣˋ ㄈㄥ','eng,fh'], ['📮','郵筒','ㄧㄡˊ ㄊㄨㄥˇ','dt,eng'], ['📦','箱子','ㄒㄧㄤ ˙ㄗ','an,zh'], ['🗑️','垃圾桶','ㄌㄜˋ ㄙㄜˋ ㄊㄨㄥˇ','dt,zh'],
+  ['🧸','玩具熊','ㄨㄢˊ ㄐㄩˋ ㄒㄩㄥˊ','an,yu'], ['🪀','溜溜球','ㄌㄧㄡ ㄌㄧㄡ ㄑㄧㄡˊ','ld,tone'], ['🪁','風箏','ㄈㄥ ˙ㄓㄥ','eng,fh'], ['🧩','拼圖','ㄆㄧㄣ ㄊㄨˊ','bp,eng'],
+  ['🎲','骰子','ㄕㄞˇ ˙ㄗ','zh,tone'], ['🎮','遊戲機','ㄧㄡˊ ㄒㄧˋ ㄐㄧ','yu,tone'], ['🧱','磚塊','ㄓㄨㄢ ㄎㄨㄞˋ','gk,zh'], ['🪜','梯子','ㄊㄧ ˙ㄗ','dt,zh'],
+  ['🔨','鐵鎚','ㄊㄧㄝˇ ㄔㄨㄟˊ','dt,zh'], ['🪣','水桶','ㄕㄨㄟˇ ㄊㄨㄥˇ','dt,zh'], ['🧺','籃子','ㄌㄢˊ ˙ㄗ','an,ld'], ['🪴','盆栽','ㄆㄣˊ ㄗㄞ','bp,zh'],
+  ['🧵','線','ㄒㄧㄢˋ','an,yu'], ['🧶','毛線','ㄇㄠˊ ㄒㄧㄢˋ','yu,an'], ['🔔','鈴鐺','ㄌㄧㄥˊ ˙ㄉㄤ','dt,eng'], ['📢','大聲公','ㄉㄚˋ ㄕㄥ ㄍㄨㄥ','dt,zh'],
+  ['🔍','放大鏡','ㄈㄤˋ ㄉㄚˋ ㄐㄧㄥˋ','an,fh'], ['🔭','望遠鏡','ㄨㄤˋ ㄩㄢˇ ㄐㄧㄥˋ','yu,an'], ['💰','錢','ㄑㄧㄢˊ','yu,an'], ['💎','鑽石','ㄗㄨㄢˋ ㄕˊ','an,zh'],
+  ['👑','皇冠','ㄏㄨㄤˊ ㄍㄨㄢ','an,fh'], ['🎀','蝴蝶結','ㄏㄨˊ ㄉㄧㄝˊ ㄐㄧㄝˊ','dt,ld'], ['🧧','紅包','ㄏㄨㄥˊ ㄅㄠ','eng,bp'], ['🏮','燈籠','ㄉㄥ ˙ㄌㄨㄥ','eng,dt'],
+  ['🎆','煙火','ㄧㄢ ㄏㄨㄛˇ','an,yu'], ['🎄','聖誕樹','ㄕㄥˋ ㄉㄢˋ ㄕㄨˋ','eng,dt'], ['🎃','南瓜','ㄋㄢˊ ㄍㄨㄚ','an,gk'], ['🎉','慶祝','ㄑㄧㄥˋ ㄓㄨˋ','eng,yu'],
+  ['🏆','獎盃','ㄐㄧㄤˇ ㄅㄟ','bp,an'], ['🥇','金牌','ㄐㄧㄣ ㄆㄞˊ','bp,yu'], ['🎫','門票','ㄇㄣˊ ㄆㄧㄠˋ','bp,eng'], ['🧳','行李箱','ㄒㄧㄥˊ ˙ㄌㄧ ㄒㄧㄤ','ld,eng'],
+  ['👜','手提包','ㄕㄡˇ ㄊㄧˊ ㄅㄠ','bp,zh'], ['👛','錢包','ㄑㄧㄢˊ ㄅㄠ','yu,an'], ['👓','眼鏡','ㄧㄢˇ ㄐㄧㄥˋ','an,eng'], ['🕶️','太陽眼鏡','ㄊㄞˋ ㄧㄤˊ ㄧㄢˇ ㄐㄧㄥˋ','eng,dt'],
+  ['🧣','圍巾','ㄨㄟˊ ㄐㄧㄣ','yu,eng'], ['🧤','手套','ㄕㄡˇ ㄊㄠˋ','dt,zh'], ['🧥','外套','ㄨㄞˋ ㄊㄠˋ','dt,tone'], ['👖','褲子','ㄎㄨˋ ˙ㄗ','zh,gk'],
+  ['👗','洋裝','ㄧㄤˊ ㄓㄨㄤ','an,zh'], ['🩳','短褲','ㄉㄨㄢˇ ㄎㄨˋ','dt,ld'], ['👢','靴子','ㄒㄩㄝ ˙ㄗ','zh,yu'], ['🩴','拖鞋','ㄊㄨㄛ ㄒㄧㄝˊ','dt,yu'],
+  ['⛑️','安全帽','ㄢ ㄑㄩㄢˊ ㄇㄠˋ','an,yu'], ['👒','草帽','ㄘㄠˇ ㄇㄠˋ','zh,tone'], ['🩹','繃帶','ㄅㄥ ㄉㄞˋ','bp,eng'], ['💊','藥','ㄧㄠˋ','tone'],
+  ['💉','打針','ㄉㄚˇ ㄓㄣ','ld,dt'], ['🏀','籃球','ㄌㄢˊ ㄑㄧㄡˊ','an,ld'], ['⚾','棒球','ㄅㄤˋ ㄑㄧㄡˊ','an,bp'], ['🏐','排球','ㄆㄞˊ ㄑㄧㄡˊ','bp,tone'],
+  ['🎾','網球','ㄨㄤˇ ㄑㄧㄡˊ','an,tone'], ['🏓','桌球','ㄓㄨㄛ ㄑㄧㄡˊ','zh,tone'], ['🏸','羽毛球','ㄩˇ ㄇㄠˊ ㄑㄧㄡˊ','yu,tone'], ['⛸️','溜冰','ㄌㄧㄡ ㄅㄧㄥ','bp,ld'],
+  ['🎿','滑雪','ㄏㄨㄚˊ ㄒㄩㄝˇ','yu,fh'], ['🎣','釣魚','ㄉㄧㄠˋ ㄩˊ','dt,ld'], ['🚴','騎車','ㄑㄧˊ ㄔㄜ','yu,zh'], ['🤸','翻滾','ㄈㄢ ㄍㄨㄣˇ','eng,fh'],
+  ['🏄','衝浪','ㄔㄨㄥ ㄌㄤˋ','ld,zh'], ['🤿','潛水','ㄑㄧㄢˊ ㄕㄨㄟˇ','an,zh'], ['🏹','射箭','ㄕㄜˋ ㄐㄧㄢˋ','an,yu'], ['🥏','飛盤','ㄈㄟ ㄆㄢˊ','fh,bp'],
+  ['🎸','吉他','ㄐㄧˊ ㄊㄚ','dt,yu'], ['🎹','鋼琴','ㄍㄤ ㄑㄧㄣˊ','eng,yu'], ['🎻','小提琴','ㄒㄧㄠˇ ㄊㄧˊ ㄑㄧㄣˊ','dt,yu'], ['🎵','音樂','ㄧㄣ ㄩㄝˋ','eng,yu'],
+  ['🎧','耳機','ㄦˇ ㄐㄧ','yu,tone'], ['🎪','馬戲團','ㄇㄚˇ ㄒㄧˋ ㄊㄨㄢˊ','dt,yu'], ['🖼️','圖畫','ㄊㄨˊ ㄏㄨㄚˋ','dt,fh'], ['🎐','風鈴','ㄈㄥ ㄌㄧㄥˊ','eng,fh'],
+  ['🧨','鞭炮','ㄅㄧㄢ ㄆㄠˋ','an,bp'], ['✨','閃亮','ㄕㄢˇ ㄌㄧㄤˋ','ld,an'], ['🪄','魔法棒','ㄇㄛˊ ㄈㄚˇ ㄅㄤˋ','fh,bp'], ['👶','嬰兒','ㄧㄥ ㄦˊ','yu,eng'],
+  ['👦','男生','ㄋㄢˊ ㄕㄥ','an,eng'], ['👧','女生','ㄋㄩˇ ㄕㄥ','eng,zh'], ['👴','爺爺','ㄧㄝˊ ˙ㄧㄝ','yu,tone'], ['👵','奶奶','ㄋㄞˇ ˙ㄋㄞ','ld,tone'],
+  ['👨','爸爸','ㄅㄚˋ ˙ㄅㄚ','bp,tone'], ['👩','媽媽','ㄇㄚ ˙ㄇㄚ','tone'], ['👮','警察','ㄐㄧㄥˇ ㄔㄚˊ','zh,eng'], ['👷','工人','ㄍㄨㄥ ㄖㄣˊ','gk,eng'],
+  ['🤴','王子','ㄨㄤˊ ㄗˇ','zh,an'], ['👸','公主','ㄍㄨㄥ ㄓㄨˇ','gk,eng'], ['🧚','仙女','ㄒㄧㄢ ㄋㄩˇ','yu,ld'], ['🧜','美人魚','ㄇㄟˇ ㄖㄣˊ ㄩˊ','eng,yu'],
+  ['🦸','超人','ㄔㄠ ㄖㄣˊ','zh,eng'], ['🤖','機器人','ㄐㄧ ㄑㄧˋ ㄖㄣˊ','yu,eng'], ['👽','外星人','ㄨㄞˋ ㄒㄧㄥ ㄖㄣˊ','eng,yu'], ['🤡','小丑','ㄒㄧㄠˇ ㄔㄡˇ','zh,tone'],
+  ['😇','天使','ㄊㄧㄢ ㄕˇ','an,dt'], ['👄','嘴巴','ㄗㄨㄟˇ ˙ㄅㄚ','zh,bp'], ['👅','舌頭','ㄕㄜˊ ˙ㄊㄡ','zh,dt'], ['🦶','腳','ㄐㄧㄠˇ','tone'],
+  ['🦵','腿','ㄊㄨㄟˇ','dt,tone'], ['💪','手臂','ㄕㄡˇ ㄅㄧˋ','zh,bp'], ['🧠','大腦','ㄉㄚˋ ㄋㄠˇ','dt,ld'], ['👣','腳步','ㄐㄧㄠˇ ㄅㄨˋ','bp,tone'],
+  ['💇','剪頭髮','ㄐㄧㄢˇ ㄊㄡˊ ㄈㄚˇ','dt,fh'], ['👍','很棒','ㄏㄣˇ ㄅㄤˋ','bp,fh'], ['👏','拍手','ㄆㄞ ㄕㄡˇ','bp,zh'], ['🙏','祈禱','ㄑㄧˊ ㄉㄠˇ','ld,dt'],
+  ['🤝','握手','ㄨㄛˋ ㄕㄡˇ','zh,tone'], ['👆','往上','ㄨㄤˇ ㄕㄤˋ','zh,an'], ['👇','往下','ㄨㄤˇ ㄒㄧㄚˋ','an,tone'], ['👈','左邊','ㄗㄨㄛˇ ㄅㄧㄢ','zh,an'],
+  ['👉','右邊','ㄧㄡˋ ㄅㄧㄢ','an,bp'], ['🤗','擁抱','ㄩㄥ ㄅㄠˋ','yu,eng'], ['😠','生氣','ㄕㄥ ㄑㄧˋ','zh,yu'], ['😨','害怕','ㄏㄞˋ ㄆㄚˋ','fh,bp'],
+  ['😲','驚訝','ㄐㄧㄥ ㄧㄚˋ','yu,eng'], ['😊','開心','ㄎㄞ ㄒㄧㄣ','yu,gk'], ['😋','好吃','ㄏㄠˇ ㄔ','zh,fh'], ['🥱','打哈欠','ㄉㄚˇ ㄏㄚ ㄑㄧㄢˋ','yu,ld'],
+  ['🤧','打噴嚏','ㄉㄚˇ ㄆㄣ ㄊㄧˋ','bp,eng'], ['🤒','發燒','ㄈㄚ ㄕㄠ','fh,zh'], ['😷','口罩','ㄎㄡˇ ㄓㄠˋ','gk,zh'], ['🥶','好冷','ㄏㄠˇ ㄌㄥˇ','fh,ld'],
+  ['🥵','好熱','ㄏㄠˇ ㄖㄜˋ','fh,tone'], ['🤔','思考','ㄙ ㄎㄠˇ','gk,zh'], ['😭','大哭','ㄉㄚˋ ㄎㄨ','ld,dt'], ['😆','大笑','ㄉㄚˋ ㄒㄧㄠˋ','ld,dt'],
+  ['🤫','安靜','ㄢ ㄐㄧㄥˋ','yu,eng'], ['😱','尖叫','ㄐㄧㄢ ㄐㄧㄠˋ','an,yu'], ['🥳','派對','ㄆㄞˋ ㄉㄨㄟˋ','bp,dt'], ['💦','流汗','ㄌㄧㄡˊ ㄏㄢˋ','ld,an'],
+  ['💔','傷心','ㄕㄤ ㄒㄧㄣ','yu,eng'], ['💋','親親','ㄑㄧㄣ ˙ㄑㄧㄣ','eng,yu'], ['🗣️','說話','ㄕㄨㄛ ㄏㄨㄚˋ','zh,fh'], ['🙋','舉手','ㄐㄩˇ ㄕㄡˇ','zh,yu'],
+  ['🙇','鞠躬','ㄐㄩˊ ㄍㄨㄥ','eng,gk'], ['🚶','走路','ㄗㄡˇ ㄌㄨˋ','ld,zh'], ['🤾','丟球','ㄉㄧㄡ ㄑㄧㄡˊ','ld,dt'], ['⛹️','拍球','ㄆㄞ ㄑㄧㄡˊ','bp,tone'],
+  ['🚰','喝水','ㄏㄜ ㄕㄨㄟˇ','zh,fh'], ['📞','打電話','ㄉㄚˇ ㄉㄧㄢˋ ㄏㄨㄚˋ','ld,fh'], ['🛍️','買東西','ㄇㄞˇ ㄉㄨㄥ ˙ㄒㄧ','ld,eng'], ['📸','拍照','ㄆㄞ ㄓㄠˋ','bp,zh'],
+  ['📝','寫功課','ㄒㄧㄝˇ ㄍㄨㄥ ㄎㄜˋ','eng,yu'], ['🛀','泡澡','ㄆㄠˋ ㄗㄠˇ','zh,bp'], ['🛌','躺下','ㄊㄤˇ ㄒㄧㄚˋ','dt,an'], ['🔤','字母','ㄗˋ ㄇㄨˇ','zh,tone'],
+  ['🔢','數字','ㄕㄨˋ ㄗˋ','zh,tone'], ['➕','加','ㄐㄧㄚ','tone'], ['➖','減','ㄐㄧㄢˇ','an,yu'], ['❓','問號','ㄨㄣˋ ㄏㄠˋ','fh,eng'],
+  ['⭕','圓圈','ㄩㄢˊ ㄑㄩㄢ','an,yu'], ['❌','叉叉','ㄔㄚ ㄔㄚ','zh,tone'], ['✅','打勾','ㄉㄚˇ ㄍㄡ','gk,dt'], ['🔺','三角形','ㄙㄢ ㄐㄧㄠˇ ㄒㄧㄥˊ','eng,yu'],
+  ['🟥','正方形','ㄓㄥˋ ㄈㄤ ㄒㄧㄥˊ','an,zh'], ['💯','一百分','ㄧ ㄅㄞˇ ㄈㄣ','eng,bp'], ['⬆️','上','ㄕㄤˋ','zh,an'], ['⬇️','下','ㄒㄧㄚˋ','tone'],
+  ['⬅️','左','ㄗㄨㄛˇ','zh,tone'], ['➡️','右','ㄧㄡˋ','tone'], ['🔴','紅色','ㄏㄨㄥˊ ㄙㄜˋ','fh,eng'], ['🟡','黃色','ㄏㄨㄤˊ ㄙㄜˋ','zh,fh'],
+  ['🔵','藍色','ㄌㄢˊ ㄙㄜˋ','an,zh'], ['🟢','綠色','ㄌㄩˋ ㄙㄜˋ','ld,zh'], ['🟣','紫色','ㄗˇ ㄙㄜˋ','zh,tone'], ['🟠','橘色','ㄐㄩˊ ㄙㄜˋ','yu,zh'],
+  ['⚫','黑色','ㄏㄟ ㄙㄜˋ','fh,zh'], ['⚪','白色','ㄅㄞˊ ㄙㄜˋ','zh,bp'], ['🟤','咖啡色','ㄎㄚ ㄈㄟ ㄙㄜˋ','zh,fh'], ['🕐','一點','ㄧ ㄉㄧㄢˇ','an,ld'],
+  ['🕒','三點','ㄙㄢ ㄉㄧㄢˇ','dt,zh'], ['🕕','六點','ㄌㄧㄡˋ ㄉㄧㄢˇ','dt,ld'], ['🕘','九點','ㄐㄧㄡˇ ㄉㄧㄢˇ','dt,an'], ['🕛','十二點','ㄕˊ ㄦˋ ㄉㄧㄢˇ','ld,zh'],
+  ['🏳️','白旗','ㄅㄞˊ ㄑㄧˊ','yu,bp'], ['🚩','旗子','ㄑㄧˊ ˙ㄗ','zh,yu'], ['🏁','終點','ㄓㄨㄥ ㄉㄧㄢˇ','eng,dt'], ['💌','卡片','ㄎㄚˇ ㄆㄧㄢˋ','gk,bp'],
+  ['📰','報紙','ㄅㄠˋ ㄓˇ','bp,zh'], ['🏺','花瓶','ㄏㄨㄚ ㄆㄧㄥˊ','bp,eng'], ['🔊','大聲','ㄉㄚˋ ㄕㄥ','zh,ld'], ['🔈','小聲','ㄒㄧㄠˇ ㄕㄥ','zh,eng']
 ].map(([e, h, z, c]) => ({ e, h, z, cats:c.split(',') }));
 const QZ_CAT = { tone:'聲調', eng:'ㄣ／ㄥ', an:'ㄢ／ㄤ', ld:'ㄌ／ㄉ／ㄋ', fh:'ㄈ／ㄏ', zh:'ㄓㄔㄕ／ㄗㄘㄙ（翹舌）', bp:'ㄅ／ㄆ', dt:'ㄉ／ㄊ', gk:'ㄍ／ㄎ', yu:'ㄧ／ㄩ' };
 
@@ -784,34 +886,38 @@ const WORLD = [
 const FSOLID = '#BT~FbHCRPU';
 // 全部答對的獎勵：農場上下的入口打開，通到「罐子迷宮」，沿路有罐子可以撿（每次全對都會重新變一個迷宮）
 const MAZE_UP = WORLD.length, MAZE_DOWN = WORLD.length + 1, MAZE_CANS = 8;
+const MAZE_COUNT = 100, MAZE_TIME = 30;   // 共 100 個迷宮；兩個迷宮加起來只能待 30 秒
+const seeded = seed => () => { seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 const MAZE_NAME = ['ㄍㄨㄢˋ ˙ㄗ ㄇㄧˊ ㄍㄨㄥ', '罐子迷宮'];
-function makeMaze(up){
+function makeMaze(up, no){
+  const rnd = seeded(no * 7919), mix = a => { for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const g = Array.from({ length:FH }, () => Array(FW).fill('#'));
   const cells = [], seen = new Set(), key = (x, y) => x + ',' + y;
   // 格子在奇數座標（x 1～21、y 1～13），用深度優先把牆打通，每一格都走得到
   const st = [[11, up ? 13 : 1]]; seen.add(key(...st[0])); g[st[0][1]][st[0][0]] = '.';
   while (st.length){
     const [x, y] = st[st.length - 1];
-    const nb = shuffle([[2, 0], [-2, 0], [0, 2], [0, -2]]).map(([dx, dy]) => [x + dx, y + dy, x + dx / 2, y + dy / 2]).filter(([nx, ny]) => nx >= 1 && nx <= 21 && ny >= 1 && ny <= 13 && !seen.has(key(nx, ny)));
+    const nb = mix([[2, 0], [-2, 0], [0, 2], [0, -2]]).map(([dx, dy]) => [x + dx, y + dy, x + dx / 2, y + dy / 2]).filter(([nx, ny]) => nx >= 1 && nx <= 21 && ny >= 1 && ny <= 13 && !seen.has(key(nx, ny)));
     if (!nb.length){ st.pop(); continue; }
     const [nx, ny, wx, wy] = nb[0];
     g[wy][wx] = g[ny][nx] = '.'; seen.add(key(nx, ny)); st.push([nx, ny]); cells.push([nx, ny]);
   }
   // 多打通幾面牆，讓路不只一條，比較不會走死
   for (let k = 0; k < 14; k++){
-    const x = 1 + Math.floor(Math.random() * 21), y = 1 + Math.floor(Math.random() * 13);
+    const x = 1 + Math.floor(rnd() * 21), y = 1 + Math.floor(rnd() * 13);
     if (g[y][x] === '#' && ((g[y][x - 1] === '.' && g[y][x + 1] === '.' && g[y - 1][x] === '#' && g[y + 1][x] === '#') || (g[y - 1][x] === '.' && g[y + 1][x] === '.' && g[y][x - 1] === '#' && g[y][x + 1] === '#'))) g[y][x] = '.';
   }
-  for (let k = 0; k < 10; k++){ const x = 1 + Math.floor(Math.random() * 21), y = 1 + Math.floor(Math.random() * 13); if (g[y][x] === '.') g[y][x] = '*'; }
+  for (let k = 0; k < 10; k++){ const x = 1 + Math.floor(rnd() * 21), y = 1 + Math.floor(rnd() * 13); if (g[y][x] === '.') g[y][x] = '*'; }
   g[up ? FH - 1 : 0][11] = 'V';   // 回農場的入口
   const rows = g.map(r => r.join(''));
   // 罐子放在離入口遠一點的路上，彼此分開
-  const ey = up ? 13 : 1, spots = shuffle(cells.filter(([x, y]) => Math.abs(x - 11) + Math.abs(y - ey) > 4)), cans = [];
+  const ey = up ? 13 : 1, spots = mix(cells.filter(([x, y]) => Math.abs(x - 11) + Math.abs(y - ey) > 4)), cans = [];
   spots.forEach(([x, y]) => { if (cans.length < MAZE_CANS && !cans.some(c => Math.abs(c.x - x) + Math.abs(c.y - y) < 4)) cans.push({ x, y }); });
-  return { rows, cans, animals:[], bg:renderMapBg('maze', rows) };
+  return { rows, cans, animals:[], no, bg:renderMapBg('maze', rows) };
 }
 // 還有沒撿的罐子（迷宮還沒去過也算）
-const bonusLeft = () => FM && FM.bonus && [MAZE_UP, MAZE_DOWN].some(mi => !FM.world[mi] || FM.world[mi].cans.length);
+const mazeOpen = () => FM && FM.bonus && FM.mazeMs > 0;
+const bonusLeft = () => mazeOpen() && [MAZE_UP, MAZE_DOWN].some(mi => !FM.world[mi] || FM.world[mi].cans.length);
 const fP = (g, x, y, c, w = 1, h = 1) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
 const fHash = (x, y, k) => { let h = x * 374761393 + y * 668265263 + k * 1442695041; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967295; };
 let FM = null;
@@ -889,7 +995,7 @@ function renderMapBg(id, rows){
 }
 const fWalk = (x, y, skip) => {
   const rows = mapRows(FM ? FM.mi : 0);
-  return x >= 0 && y >= 0 && x < FW && y < FH && !FSOLID.includes(rows[y][x]) && !(rows[y][x] === 'V' && !(FM && FM.bonus)) && !(FM && FM.animals.some(a => a !== skip && a.x === x && a.y === y));
+  return x >= 0 && y >= 0 && x < FW && y < FH && !FSOLID.includes(rows[y][x]) && !(rows[y][x] === 'V' && !(FM && (FM.mi >= WORLD.length || mazeOpen()))) && !(FM && FM.animals.some(a => a !== skip && a.x === x && a.y === y));
 };
 // 第一次走進一張地圖：把住在這裡、還沒跟著你的動物放上去（不放在入口附近）
 function populate(mi){
@@ -914,7 +1020,9 @@ function resetTrail(side, vy = 0){
 }
 function farmStart(bonus){
   const me = { x:11, y:12, px:11 * FT, py:12 * FT, path:[], face:1 };
-  FM = { mi:0, world:[], me, hist:[], target:null, frame:0, flash:{}, cv:$('farmCv'), bonus:!!bonus };
+  FM = { mi:0, world:[], me, hist:[], target:null, frame:0, flash:{}, cv:$('farmCv'), bonus:!!bonus, mazeMs:MAZE_TIME * 1000, mazeT0:0 };
+  const a = 1 + Math.floor(Math.random() * MAZE_COUNT); let b = 1 + Math.floor(Math.random() * (MAZE_COUNT - 1)); if (b >= a) b++;
+  FM.mazeNo = { [MAZE_UP]:a, [MAZE_DOWN]:b };
   Object.defineProperty(FM, 'animals', { get(){ return this.world[this.mi].animals; }, set(v){ this.world[this.mi].animals = v; } });
   populate(0);
   resetTrail(-1);
@@ -938,18 +1046,36 @@ function switchMap(dir){
 function switchMaze(toMi, fromY){
   const M = FM, me = M.me, goUp = fromY === 0;
   M.mi = toMi;
-  if (toMi >= WORLD.length && !M.world[toMi]) M.world[toMi] = makeMaze(toMi === MAZE_UP);
-  if (toMi >= WORLD.length) me.x = 11;
+  if (toMi >= WORLD.length && !M.world[toMi]) M.world[toMi] = makeMaze(toMi === MAZE_UP, M.mazeNo[toMi]);
+  // 計時：進迷宮開始算，出來就停（剩下的秒數留著，下次進另一個迷宮接著用）
+  if (toMi >= WORLD.length) M.mazeT0 = Date.now(); else { M.mazeMs = Math.max(0, M.mazeMs - (Date.now() - M.mazeT0)); M.mazeT0 = 0; }
+  me.x = 11;   // 迷宮和農場的入口都在 x=11
   me.y = goUp ? FH - 2 : 1;
   me.px = me.x * FT; me.py = me.y * FT; me.path = []; M.target = null;
   resetTrail(0, goUp ? 1 : -1);
   closeAsk(); mapLabels(); SFX.blip();
   const say = $('farmSay');
   if (toMi >= WORLD.length){
+    if (say && QZS.pets.length) setTimeout(() => { const s2 = $('farmSay'); if (s2 && FM && FM.mi >= WORLD.length && /迷宮/.test(s2.textContent)) s2.innerHTML = Z('ㄉㄨㄥˋ ㄨˋ ㄗㄞˋ ㄨㄞˋ ˙ㄇㄧㄢ ㄉㄥˇ ㄋㄧˇ，ㄎㄨㄞˋ ㄐㄧㄢˇ ㄍㄨㄢˋ ˙ㄗ！', '動物在外面等你，快撿罐子！'); }, 2500);
     const left = M.world[toMi].cans.length;
     if (say) say.innerHTML = left ? `${Z(MAZE_NAME[0], MAZE_NAME[1])}${Z('ㄌㄧˇ ˙ㄇㄧㄢ ㄧㄡˇ', '裡面有')} ${left} ${Z('ㄍㄜˋ ㄍㄨㄢˋ ˙ㄗ，ㄗㄡˇ ㄍㄨㄛˋ ㄑㄩˋ ㄐㄧㄢˇ！', '個罐子，走過去撿！')}` : Z('ㄍㄨㄢˋ ˙ㄗ ㄉㄡ ㄐㄧㄢˇ ㄨㄢˊ ˙ㄌㄜ！', '罐子都撿完了！');
     setTimeout(() => speak('罐子迷宮'), 150);
   } else if (say) say.innerHTML = `${Z('ㄏㄨㄟˊ ㄉㄠˋ', '回到')}${Z(WORLD[0].name[1], WORLD[0].name[0])}${Z('˙ㄌㄜ！', '了！')}`;
+}
+// 迷宮裡剩幾秒
+const mazeSecs = () => Math.max(0, Math.ceil((FM.mazeMs - (FM.mazeT0 ? Date.now() - FM.mazeT0 : 0)) / 1000));
+function mazeTick(){
+  const M = FM; if (M.mi < WORLD.length) return false;
+  const sec = mazeSecs(), el = $('mazeTime');
+  if (el && el.dataset.s !== String(sec)){ el.dataset.s = sec; el.textContent = sec; el.classList.toggle('hurry', sec <= 5); if (sec <= 5 && sec > 0) SFX.blip(); }
+  if (sec > 0) return false;
+  // 時間到：跳回農場
+  const up = M.mi === MAZE_UP;
+  switchMaze(0, up ? FH - 1 : 0);
+  M.mazeMs = 0; mapLabels(); SFX.no();
+  const say = $('farmSay'); if (say) say.innerHTML = `⏱ ${Z('ㄕˊ ㄐㄧㄢ ㄉㄠˋ ˙ㄌㄜ，ㄏㄨㄟˊ ㄉㄠˋ ㄋㄨㄥˊ ㄔㄤˇ ˙ㄌㄜ！', '時間到了，回到農場了！')}`;
+  setTimeout(() => speak('時間到了'), 200);
+  return true;
 }
 // 走到罐子上就撿起來
 function pickCan(){
@@ -967,13 +1093,13 @@ function mapLabels(){
     const up = FM.mi === MAZE_UP;
     set('gateL', ''); set('gateR', '');
     set('gateU', up ? '' : `▲ ${zn(farm)}`); set('gateD', up ? `${zn(farm)} ▼` : '');
-    set('mapName', Z(MAZE_NAME[0], MAZE_NAME[1]));
+    set('mapName', `${Z(MAZE_NAME[0], MAZE_NAME[1])} <small>${FM.world[FM.mi].no}${Z('ㄏㄠˋ', '號')}</small> ⏱<span class="mz-time" id="mazeTime">${mazeSecs()}</span>`);
     return;
   }
   const prev = WORLD[(FM.mi + n - 1) % n], next = WORLD[(FM.mi + 1) % n], cur = WORLD[FM.mi];
   set('gateL', `◀ ${zn(prev)}`);
   set('gateR', `${zn(next)} ▶`);
-  const mz = FM.bonus ? Z(MAZE_NAME[0], MAZE_NAME[1]) : `🔒 ${Z('ㄑㄩㄢˊ ㄉㄨㄟˋ ㄘㄞˊ ㄎㄞ', '全對才開')}`;
+  const mz = !FM.bonus ? `🔒 ${Z('ㄑㄩㄢˊ ㄉㄨㄟˋ ㄘㄞˊ ㄎㄞ', '全對才開')}` : FM.mazeMs > 0 ? `${Z(MAZE_NAME[0], MAZE_NAME[1])} ⏱${mazeSecs()}` : `🔒 ${Z('ㄕˊ ㄐㄧㄢ ㄉㄠˋ ˙ㄌㄜ', '時間到了')}`;
   set('gateU', FM.mi === 0 ? `▲ ${mz}` : ''); set('gateD', FM.mi === 0 ? `${mz} ▼` : '');
   set('mapName', zn(cur));
 }
@@ -995,7 +1121,7 @@ function showRefill(){
 // 跟著你走的動物：走的步數超過地圖的格子數，就會肚子餓、掉隊，留在原地等你再來餵
 const HUNGRY_STEPS = FW * FH;
 function petStep(){
-  if (!QZS.pets.length) return;
+  if (!QZS.pets.length || FM.mi >= WORLD.length) return;
   QZS.petSteps = QZS.petSteps || {};
   QZS.pets.forEach(id => QZS.petSteps[id] = (QZS.petSteps[id] || 0) + 1);
   const hungry = QZS.pets.filter(id => QZS.petSteps[id] > HUNGRY_STEPS);
@@ -1077,7 +1203,7 @@ function farmTap(e){
   const px = (e.clientX - r.left) / r.width * FW * FT, py = (e.clientY - r.top) / r.height * FH * FT;
   // 先看是不是點到跟著你的動物（點到就餵牠，血條補滿）
   let best = -1, bd = 1e9;
-  QZS.pets.forEach((id, k) => { const h = followerAt(k), d = Math.hypot(px - (h.x + 8), py - (h.y + 8)); if (d < bd){ bd = d; best = k; } });
+  if (FM.mi < WORLD.length) QZS.pets.forEach((id, k) => { const h = followerAt(k), d = Math.hypot(px - (h.x + 8), py - (h.y + 8)); if (d < bd){ bd = d; best = k; } });
   if (best >= 0 && bd <= 11){ audio(); askFollower(QZS.pets[best]); return; }
   farmGo(Math.floor((e.clientX - r.left) / r.width * FW), Math.floor((e.clientY - r.top) / r.height * FH));
 }
@@ -1092,6 +1218,7 @@ function farmLoop(){
   const M = FM;
   if (!M || !document.body.contains(M.cv)){ FM = null; return; }
   M.frame++;
+  if (mazeTick()){ requestAnimationFrame(farmLoop); return; }
   const me = M.me;
   if (me.path.length){
     const [tx, ty] = me.path[0], gx = tx * FT, gy = ty * FT;
@@ -1119,7 +1246,7 @@ function drawFarm(){
     const bob = Math.floor((M.frame + c.x * 5) / 20) % 2 ? -1 : 0;
     fP(g, c.x * FT + 3, c.y * FT + 13, 'rgba(0,0,0,.2)', 10, 2); g.drawImage(sprite('🥫'), c.x * FT - 1, c.y * FT - 2 + bob);
   } }));
-  if (M.mi === 0 && !M.bonus) [0, FH - 1].forEach(y => {   // 沒有全對：上下入口用木柵欄和鎖擋著
+  if (M.mi === 0 && !mazeOpen()) [0, FH - 1].forEach(y => {   // 沒有全對：上下入口用木柵欄和鎖擋著
     const ox = 11 * FT, oy = y * FT; fP(g, ox, oy + 4, INK, FT * 2, 8); fP(g, ox, oy + 5, '#8a5a2c', FT * 2, 6);
     fP(g, ox + 10, oy + 1, INK, 12, 13); fP(g, ox + 11, oy + 6, '#ffd23c', 10, 7); fP(g, ox + 12, oy + 2, INK, 1, 4); fP(g, ox + 19, oy + 2, INK, 1, 4); fP(g, ox + 15, oy + 8, INK, 2, 3);
   });
@@ -1129,7 +1256,7 @@ function drawFarm(){
     g.drawImage(animalCanvas(a.sp), a.x * FT - 1, a.y * FT + 1 + bob);
   } }));
   // 跟著你的動物：排在小朋友走過的路上
-  QZS.pets.forEach((id, k) => {
+  if (M.mi < WORLD.length) QZS.pets.forEach((id, k) => {
     const h = M.hist[Math.max(0, M.hist.length - 1 - (k + 1) * 8)];
     ents.push({ y:h.y - .5, f:() => { const bob = Math.floor((M.frame + k * 7) / 14) % 2 ? -1 : 0; fP(g, h.x + 2, h.y + 14, 'rgba(0,0,0,.2)', 12, 2); g.drawImage(animalCanvas(spOf(id)), h.x - 1, h.y + 1 + bob);
       // 頭上的血條（飽足）：走路的時候才顯示，綠 → 黃 → 紅，紅了就快要餓了
@@ -1226,7 +1353,7 @@ const HELP_KID = [
   ['🐷', 'ㄗㄞˋ ㄋㄨㄥˊ ㄔㄤˇ ㄨㄟˋ ㄉㄨㄥˋ ㄨˋ', '在農場餵動物'],
   ['🐾', 'ㄨㄟˋ ㄍㄨㄛˋ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ ㄏㄨㄟˋ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ', '餵過的動物會跟著你'],
   ['😋', 'ㄗㄡˇ ㄊㄞˋ ㄐㄧㄡˇ，ㄉㄨㄥˋ ㄨˋ ㄏㄨㄟˋ ㄜˋ ˙ㄉㄜ ㄉㄧㄠˋ ㄉㄨㄟˋ', '走太久，動物會餓得掉隊']];
-const HELP_PARENT = '每次開始先選難度和題數：簡單二選一、中等三選一、困難四選一；題數 10、20 或 30 題（預設 10 題），按「確定」開始。畫面中間是一個東西或動作的像素圖和國字，下面是注音選項，選出正確的那一個（電腦也可以按 1～4）。題庫有 108 個一年級常用詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。答對會有「叮叮叮」的音效、電腦會唸出這個詞；上方有一排空罐，題數幾題就有幾個，第一次就答對的題目，罐子就會裝滿飼料；題目做完時，簡單每答對一題拿 1 罐、中等拿 2 罐、困難拿 3 罐；答錯會有低沉的「嗶嗶」聲，這一題就拿不到罐子，可以再選到對為止。家長不用在旁邊，聽聲音就知道孩子答得對不對。題目做完會到農場地圖（左右有大入口，連著公園、迷宮、外太空、海邊，往同一邊走五張會回到農場；15 種動物分散住在這五張地圖）：動物散在地圖上，點地圖小朋友就會走過去，點動物會走到牠旁邊餵一罐（電腦也可以用方向鍵走路，撞到動物就餵），餵一罐動物就會排在後面跟著你走，可以一直餵下一隻；每種動物各有 2 隻；跟著你的動物走路時頭上會顯示血條，走的步數超過地圖的格子數（24×15＝360 步）就會肚子餓、掉隊，留在原地等你再去餵；點跟著你的動物會顯示牠的血條和還可以走幾步，並問要不要現在餵牠，餵一罐血條就補滿；沒用完的飼料罐和跟著你的動物會留到下次。也可以不餵，直接按「再玩一次」。如果題目全部第一次就答對，農場上下的入口會打開，通到「罐子迷宮」（每次全對都會重新變一個），迷宮的路上有罐子可以撿；飼料罐用完而且迷宮也沒有罐子時，會跳出「重新蒐集飼料罐」，按確定回去答題。上方的「錯題紀錄」隨時可以看，會統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，也可以清空；之後出題時會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
+const HELP_PARENT = '每次開始先選難度和題數：簡單二選一、中等三選一、困難四選一；題數 10、20 或 30 題（預設 10 題），按「確定」開始。畫面中間是一個東西或動作的像素圖和國字，下面是注音選項，選出正確的那一個（電腦也可以按 1～4）。題庫有 500 個一年級常見的詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。答對會有「叮叮叮」的音效、電腦會唸出這個詞；上方有一排空罐，題數幾題就有幾個，第一次就答對的題目，罐子就會裝滿飼料；題目做完時，簡單每答對一題拿 1 罐、中等拿 2 罐、困難拿 3 罐；答錯會有低沉的「嗶嗶」聲，這一題就拿不到罐子，可以再選到對為止。家長不用在旁邊，聽聲音就知道孩子答得對不對。題目做完會到農場地圖（左右有大入口，連著公園、迷宮、外太空、海邊，往同一邊走五張會回到農場；15 種動物分散住在這五張地圖）：動物散在地圖上，點地圖小朋友就會走過去，點動物會走到牠旁邊餵一罐（電腦也可以用方向鍵走路，撞到動物就餵），餵一罐動物就會排在後面跟著你走，可以一直餵下一隻；每種動物各有 2 隻；跟著你的動物走路時頭上會顯示血條，走的步數超過地圖的格子數（24×15＝360 步）就會肚子餓、掉隊，留在原地等你再去餵；點跟著你的動物會顯示牠的血條和還可以走幾步，並問要不要現在餵牠，餵一罐血條就補滿；沒用完的飼料罐和跟著你的動物會留到下次。也可以不餵，直接按「再玩一次」。如果題目全部第一次就答對，農場上下的入口會打開，通到「罐子迷宮」（共 100 個迷宮，每次全對隨機挑兩個），迷宮的路上有罐子可以撿；只有小朋友能進迷宮，動物在外面等，兩個迷宮加起來只能待 30 秒，時間到會自動回到農場；飼料罐用完而且迷宮也沒有罐子時，會跳出「重新蒐集飼料罐」，按確定回去答題。上方的「錯題紀錄」隨時可以看，會統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，也可以清空；之後出題時會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
 function openHelp(){
   SFX.blip();
   $('modal').innerHTML = `<div class="qz-panel">

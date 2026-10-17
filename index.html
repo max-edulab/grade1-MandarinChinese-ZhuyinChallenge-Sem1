@@ -141,6 +141,44 @@ button{font:inherit;color:inherit}
 .qz-recent .c{margin-left:auto;font-size:13px;font-weight:700;color:var(--muted)}
 .qz-note,.qz-empty{font-size:14px;color:var(--muted);margin:4px 0 0}
 
+/* 開始畫面：難度、題數 */
+.qz-pick{display:flex;align-items:stretch;justify-content:center;gap:8px;flex-wrap:wrap}
+.qz-pick .lab{align-self:center;font-weight:900;font-size:20px;min-width:3em}
+.seg{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:5.6em;background:var(--white);border:4px solid var(--ink);box-shadow:0 4px 0 var(--ink);padding:6px 12px;cursor:pointer;font-weight:900;font-size:22px}
+.seg small{font-size:14px;color:var(--muted)}
+.seg.on{background:var(--gold)}
+.seg.on small{color:var(--ink)}
+.seg:active{transform:translateY(4px);box-shadow:none}
+.seg:focus-visible{outline:3px solid var(--brick);outline-offset:2px}
+.qz-can{display:inline-flex;align-items:center;gap:2px;font-family:var(--f-px);font-size:14px;background:var(--paper);border:3px solid var(--ink);padding:1px 8px 1px 2px}
+.qz-can img{width:26px;height:26px;image-rendering:pixelated}
+.qz-can.pop{animation:qzPop .4s steps(4)}
+@keyframes qzPop{50%{transform:scale(1.35)}}
+.qz-mine{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.qz-party{display:flex;align-items:flex-end;gap:2px;flex-wrap:wrap;justify-content:center}
+.qz-party img{width:40px;height:40px;image-rendering:pixelated;animation:qzHop .8s steps(2) infinite}
+.qz-party img.me{width:48px;height:48px}
+/* 農場 */
+.farm{margin:auto;width:min(860px,100%);display:flex;flex-direction:column;gap:10px}
+.farm-res{align-self:center;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;font-weight:900;font-size:22px;background:var(--paper);border:4px solid var(--ink);padding:4px 14px}
+.farm-res .sm{font-size:15px;color:var(--muted)}
+.farm-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.farm-head b{font-size:26px;color:var(--white);text-shadow:2px 2px 0 var(--ink)}
+.farm-say{align-self:center;font-weight:900;font-size:20px;background:rgba(255,255,255,.85);border:3px solid var(--ink);padding:2px 12px;text-align:center}
+.farm-field{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:12px;border:4px solid var(--ink);
+  background:#8a5a2c repeating-linear-gradient(90deg,transparent 0 46px,#6a4220 46px 50px);box-shadow:inset 0 0 0 6px #b07a40}
+.animal{display:flex;flex-direction:column;align-items:center;gap:2px;background:#9ce07c;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);padding:6px 4px;cursor:pointer;font-weight:900;font-size:22px}
+@media (hover:hover){.animal:hover{background:#c8f4b0}}
+.animal:active{transform:translateY(4px);box-shadow:none}
+.animal img{width:64px;height:64px;image-rendering:pixelated}
+.animal .pips{display:flex;gap:3px}
+.animal .pips i{width:12px;height:12px;border:2px solid var(--ink);background:var(--white)}
+.animal .pips i.on{background:var(--gold)}
+.animal.munch img{animation:qzMunch .5s steps(4)}
+.animal.full{animation:qzPop .5s steps(4) 2;background:var(--gold)}
+@keyframes qzMunch{25%{transform:translateY(-6px)}50%{transform:translateY(0) scale(1.1)}75%{transform:translateY(-4px)}}
+.farm-party{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(255,255,255,.75);border:3px solid var(--ink);padding:6px 12px}
+.farm-party .lab{font-weight:900;font-size:18px}
 /* 說明視窗 */
 .modal{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(18,20,60,.55)}
 .modal .qz-panel{max-height:calc(100% - 8px);overflow:auto;text-align:left}
@@ -166,6 +204,12 @@ button{font:inherit;color:inherit}
   .qz-top{flex-wrap:wrap}.qz-stat{flex-direction:row;align-items:center;gap:8px;width:100%;justify-content:space-between}
   .qz-title{font-size:26px}.qz-say{font-size:20px}
   .help-list{font-size:19px}
+  .farm-field{grid-template-columns:repeat(3,minmax(0,1fr));padding:8px;gap:6px}
+  .animal img{width:48px;height:48px}.animal{font-size:18px}
+  .seg{min-width:4.6em;font-size:19px;padding:4px 8px}
+  .qz-pick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+  .qz-pick .lab{grid-column:1/-1;text-align:center}
+  .seg{min-width:0}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -175,6 +219,7 @@ button{font:inherit;color:inherit}
     <div class="chips">
       <button class="chip" id="btnVoice" aria-pressed="true" title="答對時唸出詞">🗣️ 唸詞</button>
       <button class="chip" id="btnSnd" aria-pressed="true" title="音效開關">🔊 音效</button>
+      <button class="chip" id="btnLog" title="給家長看的錯題紀錄，可以清空">📋 錯題紀錄</button>
       <button class="chip" id="btnHelp" title="遊戲說明和給家長">📖 說明</button>
       <a class="chip" href="https://max-edulab.github.io/home/">🏠 主畫面</a>
     </div>
@@ -307,7 +352,7 @@ const QZ_WORDS = [
   ['🎁','禮物','ㄌㄧˇ ㄨˋ','ld,tone'], ['🐭','老鼠','ㄌㄠˇ ㄕㄨˇ','ld,zh'], ['🐧','企鵝','ㄑㄧˋ ㄜˊ','tone'], ['🦊','狐狸','ㄏㄨˊ ˙ㄌㄧ','fh,ld']
 ].map(([e, h, z, c]) => ({ e, h, z, cats:c.split(',') }));
 const QZ_CAT = { tone:'聲調', eng:'ㄣ／ㄥ', an:'ㄢ／ㄤ', ld:'ㄌ／ㄉ／ㄋ', fh:'ㄈ／ㄏ', zh:'ㄓㄔㄕ／ㄗㄘㄙ（翹舌）', bp:'ㄅ／ㄆ', dt:'ㄉ／ㄊ', gk:'ㄍ／ㄎ', yu:'ㄧ／ㄩ' };
-const QZ_PER = 20, QZ_HP = 5;
+const QZ_HP = 5;
 
 // ---------- 做錯的選項：把一個音節改一個地方 ----------
 const TONES = ['', 'ˊ', 'ˇ', 'ˋ'];
@@ -353,10 +398,11 @@ function makeOptions(word, n){
   return shuffle([{ z:word.z, ok:true }, ...picked]);
 }
 
-// ---------- 存檔：關卡進度＋給家長看的錯題紀錄 ----------
+// ---------- 存檔：上次選的難度題數、飼料罐、跟著你的動物、給家長看的錯題紀錄 ----------
 const QZ_KEY = 'bpm-quiz-v1';
-let QZS = { stage:1, seen:[], log:{ asked:0, firstRight:0, wrong:0, cats:{}, words:{}, recent:[] } };
-try { const s = JSON.parse(localStorage.getItem(QZ_KEY) || 'null'); if (s && s.log) QZS = { ...QZS, ...s, log:{ ...QZS.log, ...s.log } }; } catch (e) {}
+const emptyLog = () => ({ asked:0, firstRight:0, wrong:0, cats:{}, words:{}, recent:[] });
+let QZS = { diff:2, count:10, cans:0, pets:[], fed:{}, seen:[], log:emptyLog() };
+try { const s = JSON.parse(localStorage.getItem(QZ_KEY) || 'null'); if (s) QZS = { ...QZS, ...s, log:{ ...emptyLog(), ...(s.log || {}) } }; } catch (e) {}
 const qzSave = () => { try { localStorage.setItem(QZ_KEY, JSON.stringify(QZS)); } catch (e) {} };
 function logWrong(word, pick){
   const L2 = QZS.log; L2.wrong++;
@@ -368,49 +414,75 @@ function logWrong(word, pick){
   qzSave();
 }
 
+// ---------- 難度、題數 ----------
+const DIFFS = [
+  { n:2, z:'ㄐㄧㄢˇ ㄉㄢ', h:'簡單', tip:['ㄦˋ ㄒㄩㄢˇ ㄧ', '二選一'] },
+  { n:3, z:'ㄓㄨㄥ ㄉㄥˇ', h:'中等', tip:['ㄙㄢ ㄒㄩㄢˇ ㄧ', '三選一'] },
+  { n:4, z:'ㄎㄨㄣˋ ㄋㄢˊ', h:'困難', tip:['ㄙˋ ㄒㄩㄢˇ ㄧ', '四選一'] }];
+const COUNTS = [10, 20, 30];
+// ---------- 農場的動物：餵三罐就吃飽，吃飽了就跟著你走 ----------
+const FEED_NEED = 3;
+const FARM = [
+  { id:'hen', e:'🐔', z:'ㄇㄨˇ ㄐㄧ', h:'母雞' }, { id:'pig', e:'🐷', z:'ㄒㄧㄠˇ ㄓㄨ', h:'小豬' }, { id:'cow', e:'🐮', z:'ㄖㄨˇ ㄋㄧㄡˊ', h:'乳牛' },
+  { id:'sheep', e:'🐑', z:'ㄇㄧㄢˊ ㄧㄤˊ', h:'綿羊' }, { id:'rabbit', e:'🐰', z:'ㄊㄨˋ ˙ㄗ', h:'兔子' }, { id:'horse', e:'🐴', z:'ㄒㄧㄠˇ ㄇㄚˇ', h:'小馬' },
+  { id:'duck', e:'🦆', z:'ㄧㄚ ˙ㄗ', h:'鴨子' }, { id:'goat', e:'🐐', z:'ㄕㄢ ㄧㄤˊ', h:'山羊' }, { id:'dog', e:'🐶', z:'ㄒㄧㄠˇ ㄍㄡˇ', h:'小狗' },
+  { id:'cat', e:'🐱', z:'ㄒㄧㄠˇ ㄇㄠ', h:'小貓' }];
+const farmBy = id => FARM.find(a => a.id === id);
+
 // ---------- 畫面 ----------
 let QZ = null, qzTimer = null;
 const qzEl = () => $('stage');
 const WALKER = emojiSprite('🧒').toDataURL();   // 前進條上的小朋友
 const PIC_CACHE = {};
 const picUrl = e => PIC_CACHE[e] || (PIC_CACHE[e] = emojiSprite(e).toDataURL());
-// fx：'lost' 扣掉的那顆（剛碎掉）、'gain' 剛補回來的那顆
+// fx：'lost' 扣掉的那顆（剛碎掉）
 const heartsHtml = (hp, fx) => Array.from({ length:QZ_HP }, (_, i) => {
-  const lost = fx === 'lost' && i === hp, gain = fx === 'gain' && i === hp - 1;
-  return `<span class="qz-heart ${i < hp ? '' : 'off'} ${lost ? 'lost' : ''} ${gain ? 'gain' : ''}">${i < hp ? '❤️' : lost ? '💔' : '🤍'}</span>`;
+  const lost = fx === 'lost' && i === hp;
+  return `<span class="qz-heart ${i < hp ? '' : 'off'} ${lost ? 'lost' : ''}">${i < hp ? '❤️' : lost ? '💔' : '🤍'}</span>`;
 }).join('');
-const stepsHtml = done => Array.from({ length:QZ_PER }, (_, i) => i < done ? '<i class="qz-step on">★</i>' : '<i class="qz-step"></i>').join('');
+const stepsHtml = (done, total) => Array.from({ length:total }, (_, i) => i < done ? '<i class="qz-step on">★</i>' : '<i class="qz-step"></i>').join('');
+const canHtml = n => `<span class="qz-can"><img src="${picUrl('🥫')}" alt="飼料罐">×<b>${n}</b></span>`;
+const partyHtml = () => `<div class="qz-party"><img class="me" src="${WALKER}" alt="你">${QZS.pets.map((id, k) => `<img src="${picUrl(farmBy(id).e)}" alt="${farmBy(id).h}" style="animation-delay:${(k + 1) * .12}s">`).join('')}</div>`;
+const focusFirst = () => setTimeout(() => { const f = qzEl().querySelector('[data-focus]') || qzEl().querySelector('button'); if (f) f.focus({ preventScroll:true }); }, 30);
+
+// 開始畫面：選難度、選題數，按確定開始
 function qzHome(){
   clearTimeout(qzTimer); QZ = null;
-  const n = QZS.stage, L2 = QZS.log;
   qzEl().innerHTML = `<div class="qz-panel">
     <div class="qz-title">📝 ${Z('ㄓㄨˋ ㄧㄣ ㄉㄚˋ ㄊㄧㄠˇ ㄓㄢˋ', '注音大挑戰')}</div>
     <div class="qz-say">${Z('ㄎㄢˋ ㄊㄨˊ，ㄉㄧㄢˇ ㄉㄨㄟˋ ˙ㄉㄜ ㄓㄨˋ ㄧㄣ！', '看圖，點對的注音！')}</div>
-    <div class="qz-rules"><span>❤️ ${Z('ㄌㄧㄢˊ ㄉㄨㄟˋ ㄙㄢ ㄊㄧˊ ㄅㄨˇ ㄒㄧㄝˇ', '連對三題補血')}</span><span>💔 ${Z('ㄉㄚˊ ㄘㄨㄛˋ ㄎㄡˋ ㄒㄧㄝˇ', '答錯扣血')}</span><span>🚩 ${QZ_PER} ${Z('ㄊㄧˊ ㄍㄨㄛˋ ㄍㄨㄢ', '題過關')}</span></div>
-    <div class="qz-row"><button class="btn" data-qz="start" data-focus>${Z('ㄉㄧˋ', '第')} ${n} ${Z('ㄍㄨㄢ', '關')} ${Z('ㄎㄞ ㄕˇ', '開始')} ▶</button></div>
-    <div class="qz-row"><button class="btn alt" data-qz="parent">👪 家長紀錄${L2.wrong ? `（錯 ${L2.wrong} 次）` : ''}</button></div>
+    <div class="qz-pick" role="radiogroup" aria-label="難度">
+      <span class="lab">${Z('ㄋㄢˊ ㄉㄨˋ', '難度')}</span>
+      ${DIFFS.map(d => `<button class="seg ${QZS.diff === d.n ? 'on' : ''}" role="radio" aria-checked="${QZS.diff === d.n}" data-diff="${d.n}"><b>${Z(d.z, d.h)}</b><small>${Z(d.tip[0], d.tip[1])}</small></button>`).join('')}
+    </div>
+    <div class="qz-pick" role="radiogroup" aria-label="題數">
+      <span class="lab">${Z('ㄊㄧˊ ㄕㄨˋ', '題數')}</span>
+      ${COUNTS.map(c => `<button class="seg ${QZS.count === c ? 'on' : ''}" role="radio" aria-checked="${QZS.count === c}" data-count="${c}"><b>${c} ${Z('ㄊㄧˊ', '題')}</b></button>`).join('')}
+    </div>
+    <div class="qz-rules"><span>🥫 ${Z('ㄉㄚˊ ㄉㄨㄟˋ ㄋㄚˊ ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ', '答對拿飼料罐')}</span><span>💔 ${Z('ㄉㄚˊ ㄘㄨㄛˋ ㄎㄡˋ ㄞˋ ㄒㄧㄣ', '答錯扣愛心')}</span></div>
+    ${QZS.pets.length || QZS.cans ? `<div class="qz-mine">${partyHtml()}${QZS.cans ? canHtml(QZS.cans) : ''}</div>` : ''}
+    <div class="qz-row"><button class="btn" data-qz="start" data-focus>${Z('ㄑㄩㄝˋ ㄉㄧㄥˋ', '確定')} ▶</button></div>
   </div>`;
   focusFirst();
 }
-const focusFirst = () => setTimeout(() => { const f = qzEl().querySelector('[data-focus]') || qzEl().querySelector('button'); if (f) f.focus({ preventScroll:true }); }, 30);
-// 一關 20 題：以前錯過的詞優先複習（最多 6 個），其他挑還沒考過的
+// 出題：以前錯過的詞優先複習（最多三分之一），其他挑還沒考過的
 function qzStart(){
-  const n = QZS.stage, missed = Object.keys(QZS.log.words).filter(h => QZS.log.words[h].n > 0);
+  const total = QZS.count, missed = Object.keys(QZS.log.words).filter(h => QZS.log.words[h].n > 0);
   const byH = h => QZ_WORDS.find(w => w.h === h);
   let pool = QZ_WORDS.filter(w => !QZS.seen.includes(w.h));
-  if (pool.length < QZ_PER){ QZS.seen = []; pool = QZ_WORDS.slice(); }
-  const review = shuffle(missed.map(byH).filter(Boolean)).slice(0, 6);
-  const list = [...review, ...shuffle(pool.filter(w => !review.includes(w)))].slice(0, QZ_PER);
-  QZ = { n, list:shuffle(list), i:0, hp:QZ_HP, wrong:0, streak:0, missed:[], nOpt:n <= 2 ? 2 : 3, busy:false };
+  if (pool.length < total){ QZS.seen = []; pool = QZ_WORDS.slice(); }
+  const review = shuffle(missed.map(byH).filter(Boolean)).slice(0, Math.floor(total / 3));
+  const list = [...review, ...shuffle(pool.filter(w => !review.includes(w)))].slice(0, total);
+  QZ = { list:shuffle(list), total, i:0, hp:QZ_HP, wrong:0, got:0, missed:[], nOpt:QZS.diff, busy:false };
   SFX.blip(); qzQuestion();
 }
 function qzQuestion(){
   const w = QZ.list[QZ.i];
   QZ.opts = makeOptions(w, QZ.nOpt); QZ.tried = false; QZ.busy = false;
-  const pct = QZ.i / QZ_PER * 100;
+  const pct = QZ.i / QZ.total * 100;
   qzEl().innerHTML = `<div class="qz-top">
-      <div class="qz-track"><div class="qz-done" style="width:${pct}%"></div><div class="qz-steps">${stepsHtml(QZ.i)}</div><img class="qz-me" src="${WALKER}" alt="" style="left:${pct}%"><span class="qz-flag">🎁</span></div>
-      <div class="qz-stat"><span class="qz-no">${Z('ㄉㄧˋ', '第')}${QZ.n}${Z('ㄍㄨㄢ', '關')} ${QZ.i + 1}/${QZ_PER}</span><span class="qz-hp">${heartsHtml(QZ.hp)}</span></div>
+      <div class="qz-track"><div class="qz-done" style="width:${pct}%"></div><div class="qz-steps">${stepsHtml(QZ.i, QZ.total)}</div><img class="qz-me" src="${WALKER}" alt="" style="left:${pct}%"><span class="qz-flag">🏡</span></div>
+      <div class="qz-stat"><span class="qz-no">${QZ.i + 1} / ${QZ.total}</span>${canHtml(QZ.got)}<span class="qz-hp">${heartsHtml(QZ.hp)}</span></div>
     </div>
     <div class="qz-q">
       <div class="qz-card"><img class="qz-pic" src="${picUrl(w.e)}" alt="${esc(w.h)}"><div class="qz-han">${esc(w.h)}</div></div>
@@ -426,44 +498,37 @@ function qzAnswer(k){
   if (!o || !btn || btn.disabled) return;
   if (o.ok){
     QZ.busy = true; btn.classList.add('ok'); SFX.ok();
-    if (!QZ.tried) QZS.log.firstRight++;
-    QZS.log.asked++; if (!QZS.seen.includes(w.h)) QZS.seen.push(w.h); qzSave();
-    // 連續三題第一次就答對，才補一顆愛心（答錯扣掉的不會馬上補回來）
-    QZ.streak = QZ.tried ? 0 : QZ.streak + 1;
-    const heal = QZ.streak >= 3 && QZ.hp < QZ_HP;
-    if (heal){ QZ.hp++; QZ.streak = 0; }
-    $('qzFb').innerHTML = `<span class="ok">✅ ${Z('ㄉㄚˊ ㄉㄨㄟˋ ˙ㄌㄜ！', '答對了！')}</span>`;
-    qzEl().querySelector('.qz-hp').innerHTML = heartsHtml(QZ.hp, heal ? 'gain' : '');
-    qzEl().querySelector('.qz-steps').innerHTML = stepsHtml(QZ.i + 1);
-    const pct = (QZ.i + 1) / QZ_PER * 100;   // 往前走一步
+    QZS.log.asked++; if (!QZS.seen.includes(w.h)) QZS.seen.push(w.h);
+    // 第一次就答對：拿到一個飼料罐
+    if (!QZ.tried){ QZS.log.firstRight++; QZ.got++; }
+    qzSave();
+    $('qzFb').innerHTML = QZ.tried ? `<span class="ok">✅ ${Z('ㄉㄚˊ ㄉㄨㄟˋ ˙ㄌㄜ！', '答對了！')}</span>`
+      : `<span class="ok">✅ ${Z('ㄉㄚˊ ㄉㄨㄟˋ ˙ㄌㄜ！', '答對了！')} +🥫</span>`;
+    qzEl().querySelector('.qz-can b').textContent = QZ.got;
+    if (!QZ.tried) qzEl().querySelector('.qz-can').classList.add('pop');
+    const pct = (QZ.i + 1) / QZ.total * 100;
     qzEl().querySelector('.qz-me').style.left = pct + '%'; qzEl().querySelector('.qz-done').style.width = pct + '%';
+    qzEl().querySelector('.qz-steps').innerHTML = stepsHtml(QZ.i + 1, QZ.total);
     setTimeout(() => speak(w.h), 350);   // 唸出正確的詞，家長在旁邊聽得到
-    qzTimer = setTimeout(() => { QZ.i++; if (QZ.i >= QZ_PER) qzClear(); else qzQuestion(); }, 1500);
+    qzTimer = setTimeout(() => { QZ.i++; if (QZ.i >= QZ.total) qzDone(); else qzQuestion(); }, 1500);
   } else {
-    QZ.tried = true; QZ.wrong++; QZ.streak = 0; btn.classList.add('no'); btn.disabled = true; SFX.no();
+    QZ.tried = true; QZ.wrong++; btn.classList.add('no'); btn.disabled = true; SFX.no();
     if (!QZ.missed.some(m => m.w === w)) QZ.missed.push({ w, pick:o.z });
     logWrong(w, o);
-    QZ.hp--;   // 答錯扣一顆愛心
+    QZ.hp--;   // 答錯扣一顆愛心（答對也不會補回來）
     qzEl().querySelector('.qz-hp').innerHTML = heartsHtml(QZ.hp, 'lost');
     $('qzFb').innerHTML = `<span class="no">💔 ${Z('ㄎㄡˋ ㄧ ㄎㄜ ㄞˋ ㄒㄧㄣ，ㄗㄞˋ ㄒㄧㄤˇ ㄧ ㄒㄧㄤˇ', '扣一顆愛心，再想一想')}</span>`;
     if (QZ.hp <= 0){ QZ.busy = true; qzTimer = setTimeout(qzFail, 900); }
   }
 }
-const missList = list => list.length ? `<ul class="qz-miss">${list.map(m => `<li><img src="${picUrl(m.w.e)}" alt=""><b>${esc(m.w.h)}</b><span class="good">${Z(m.w.z, false)}</span><span class="bad">${Z(m.pick, false)}</span></li>`).join('')}</ul>` : '';
-function qzClear(){
-  const stars = QZ.wrong === 0 ? 3 : QZ.wrong <= 3 ? 2 : 1;
-  QZS.stage = Math.max(QZS.stage, QZ.n + 1); qzSave();
-  SFX.clear(); setTimeout(() => speak('過關了！'), 900);
-  qzEl().innerHTML = `<div class="qz-panel">
-    <div class="qz-title">🎉 ${Z('ㄍㄨㄛˋ ㄍㄨㄢ ˙ㄌㄜ！', '過關了！')}</div>
-    <div class="stars">${starsHtml(stars)}</div>
-    <div class="qz-say">${QZ.wrong ? `${Z('ㄗㄨㄛˋ ㄘㄨㄛˋ', '做錯')} ${QZ.wrong} ${Z('ㄘˋ', '次')}` : Z('ㄑㄩㄢˊ ㄅㄨˋ ㄉㄚˊ ㄉㄨㄟˋ！', '全部答對！')}</div>
-    ${QZ.missed.length ? `<div class="qz-sub">這一關要再加強（左邊是對的，右邊是選錯的）</div>${missList(QZ.missed)}` : ''}
-    <div class="qz-row"><button class="btn" data-qz="start" data-focus>${Z('ㄒㄧㄚˋ ㄧ ㄍㄨㄢ', '下一關')} ▶</button><button class="btn alt" data-qz="parent">👪 家長紀錄</button><button class="btn alt" data-qz="home">🏠 ${Z('ㄏㄨㄟˊ ㄕㄡˇ ㄧㄝˋ', '回首頁')}</button></div>
-  </div>`;
-  focusFirst();
+// 題目做完：拿到的飼料罐放進存檔，去農場餵動物
+function qzDone(){
+  const got = QZ.got, wrong = QZ.wrong, total = QZ.total, missed = QZ.missed;
+  QZS.cans += got; qzSave(); QZ = null;
+  SFX.clear();
+  qzFarm({ got, wrong, total, missed });
 }
-// 愛心扣光：顯示「再接再厲」，過一下就跳出遊戲回到首頁（這一關的錯題已經記在家長紀錄裡）
+// 愛心扣光：顯示「再接再厲」，過一下就跳出遊戲回到開始畫面（錯題已經記在錯題紀錄裡）
 function qzFail(){
   SFX.no(); QZ = null;
   qzEl().innerHTML = `<div class="qz-panel">
@@ -473,16 +538,62 @@ function qzFail(){
   setTimeout(() => speak('再接再厲'), 500);
   qzTimer = setTimeout(qzHome, 3000);
 }
-// 家長紀錄：哪一種易錯點錯最多、哪些詞常選錯、最近錯的題目
-function qzParent(){
-  clearTimeout(qzTimer); QZ = null;
+
+// ---------- 農場：點動物餵飼料罐，吃飽了就跟著你走 ----------
+function qzFarm(res){
+  clearTimeout(qzTimer);
+  const left = FARM.filter(a => !QZS.pets.includes(a.id));
+  qzEl().innerHTML = `<div class="farm">
+    ${res ? `<div class="farm-res">🎉 ${Z('ㄗㄨㄛˋ ㄨㄢˊ ˙ㄌㄜ！', '做完了！')} ${Z('ㄋㄚˊ ㄉㄠˋ', '拿到')} ${canHtml(res.got)}${res.wrong ? `<span class="sm">（${Z('ㄘㄨㄛˋ', '錯')} ${res.wrong} ${Z('ㄘˋ', '次')}）</span>` : ''}</div>` : ''}
+    <div class="farm-head"><b>🌾 ${Z('ㄋㄨㄥˊ ㄔㄤˇ', '農場')}</b><span id="farmCans">${canHtml(QZS.cans)}</span></div>
+    <div class="farm-say" id="farmSay">${left.length ? (QZS.cans ? Z('ㄉㄧㄢˇ ㄒㄧˇ ㄏㄨㄢ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ，ㄨㄟˋ ㄊㄚ ㄔ ㄙˋ ㄌㄧㄠˋ！', '點喜歡的動物，餵牠吃飼料！') : Z('ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ ㄩㄥˋ ㄨㄢˊ ˙ㄌㄜ，ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ ˙ㄅㄚ！', '飼料罐用完了，再玩一次吧！'))
+      : Z('ㄉㄨㄥˋ ㄨˋ ㄉㄡ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ ˙ㄌㄜ！', '動物都跟著你了！')}</div>
+    <div class="farm-field">${left.map(a => { const n = QZS.fed[a.id] || 0;
+      return `<button class="animal" data-feed="${a.id}" aria-label="${a.h}"><img src="${picUrl(a.e)}" alt=""><span class="nm">${Z(a.z, a.h)}</span>
+        <span class="pips">${Array.from({ length:FEED_NEED }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span></button>`; }).join('')}</div>
+    <div class="farm-party"><span class="lab">${Z('ㄍㄣ ˙ㄓㄜ ㄋㄧˇ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ', '跟著你的動物')}</span>${partyHtml()}</div>
+    <div class="qz-row"><button class="btn" data-qz="again" data-focus>🔁 ${Z('ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ', '再玩一次')}</button></div>
+  </div>`;
+  focusFirst();
+}
+function qzFeed(id){
+  const a = farmBy(id), say = $('farmSay');
+  if (!a || QZS.pets.includes(id)) return;
+  if (QZS.cans <= 0){ SFX.no(); say.innerHTML = Z('ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ ㄩㄥˋ ㄨㄢˊ ˙ㄌㄜ，ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ ˙ㄅㄚ！', '飼料罐用完了，再玩一次吧！'); return; }
+  QZS.cans--; QZS.fed[id] = (QZS.fed[id] || 0) + 1;
+  const card = qzEl().querySelector(`[data-feed="${id}"]`);
+  if (QZS.fed[id] >= FEED_NEED){
+    // 吃飽了：跟著你走
+    QZS.pets.push(id); delete QZS.fed[id]; qzSave(); SFX.clear();
+    say.innerHTML = `${esc(a.e)} ${Z(a.z, a.h)}${Z('ㄔ ㄅㄠˇ ˙ㄌㄜ，ㄍㄣ ˙ㄓㄜ ㄋㄧˇ ㄗㄡˇ！', '吃飽了，跟著你走！')}`;
+    setTimeout(() => speak(a.h + '吃飽了'), 300);
+    card.classList.add('full');
+    setTimeout(() => { if (qzEl().querySelector('.farm')) qzFarmRefresh(); }, 900);
+  } else {
+    qzSave(); SFX.ok();
+    card.querySelectorAll('.pips i')[QZS.fed[id] - 1].classList.add('on');
+    card.classList.remove('munch'); void card.offsetWidth; card.classList.add('munch');
+    say.innerHTML = `${esc(a.e)} ${Z('ㄏㄠˇ ㄏㄠˇ ㄔ！', '好好吃！')} ${Z('ㄏㄞˊ ㄧㄠˋ', '還要')} ${FEED_NEED - QZS.fed[id]} ${Z('ㄍㄨㄢˋ', '罐')}`;
+  }
+  $('farmCans').innerHTML = canHtml(QZS.cans);
+}
+// 吃飽的動物離開農場，加進跟著你的隊伍（保留上方的提示文字）
+function qzFarmRefresh(){
+  const say = $('farmSay').innerHTML;
+  qzFarm(null);
+  $('farmSay').innerHTML = say;
+}
+
+// ---------- 錯題紀錄（給家長看）：開在視窗裡，玩到一半也可以看、可以清空 ----------
+function openLog(){
+  SFX.blip();
   const L2 = QZS.log, cats = Object.entries(L2.cats).sort((a, b) => b[1] - a[1]), max = cats.length ? cats[0][1] : 1;
   const words = Object.entries(L2.words).sort((a, b) => b[1].n - a[1].n).slice(0, 15);
   const rate = L2.asked ? Math.round(L2.firstRight / L2.asked * 100) : 0;
   const d = t => { const x = new Date(t); return `${x.getMonth() + 1}/${x.getDate()} ${String(x.getHours()).padStart(2, '0')}:${String(x.getMinutes()).padStart(2, '0')}`; };
-  qzEl().innerHTML = `<div class="qz-panel qz-parent">
-    <div class="qz-title">👪 家長紀錄</div>
-    <div class="qz-sum"><span>已答 <b>${L2.asked}</b> 題</span><span>第一次就答對 <b>${rate}%</b></span><span>選錯 <b>${L2.wrong}</b> 次</span><span>目前第 <b>${QZS.stage}</b> 關</span></div>
+  $('modal').innerHTML = `<div class="qz-panel qz-parent">
+    <div class="qz-title">📋 錯題紀錄</div>
+    <div class="qz-sum"><span>已答 <b>${L2.asked}</b> 題</span><span>第一次就答對 <b>${rate}%</b></span><span>選錯 <b>${L2.wrong}</b> 次</span></div>
     ${L2.wrong ? `
     <h4>最常錯的類型</h4>
     <ul class="qz-cats">${cats.map(([c, n]) => `<li><span class="nm">${QZ_CAT[c] || c}</span><span class="bar"><i style="width:${n / max * 100}%"></i></span><b>${n}</b></li>`).join('')}</ul>
@@ -491,33 +602,31 @@ function qzParent(){
     <h4>最近選錯的題目</h4>
     <ul class="qz-recent">${L2.recent.slice(0, 12).map(r => `<li><span class="t">${d(r.t)}</span><b>${esc(r.h)}</b><span class="good">${Z(r.z, false)}</span>→<span class="bad">${Z(r.pick, false)}</span><span class="c">${QZ_CAT[r.cat] || ''}</span></li>`).join('')}</ul>`
     : '<p class="qz-empty">還沒有錯題紀錄。孩子玩過以後，這裡會列出最常錯的類型和詞。</p>'}
-    <p class="qz-note">紀錄只存在這台裝置的瀏覽器裡（換手機或電腦就看不到）。之後每一關開始時，會優先複習以前選錯的詞，最多 6 個。</p>
-    <div class="qz-row"><button class="btn" data-qz="home" data-focus>◀ 返回</button>${L2.asked ? '<button class="btn alt" data-qz="clear">🗑️ 清除紀錄</button>' : ''}</div>
+    <p class="qz-note">紀錄只存在這台裝置的瀏覽器裡。之後出題時，會優先複習以前選錯的詞。清空紀錄不會影響飼料罐和跟著你的動物。</p>
+    <div class="qz-row"><button class="btn" data-close>關閉</button>${L2.asked || L2.wrong ? '<button class="btn alt" data-clearlog>🗑️ 清空紀錄</button>' : ''}</div>
   </div>`;
-  qzEl().scrollTop = 0;
-  focusFirst();
+  $('modal').hidden = false;
+  setTimeout(() => $('modal').querySelector('[data-close]').focus(), 30);
 }
 function qzClick(e){
   const o = e.target.closest('[data-opt]'); if (o){ qzAnswer(+o.dataset.opt); return; }
+  const f = e.target.closest('[data-feed]'); if (f){ qzFeed(f.dataset.feed); return; }
+  const d = e.target.closest('[data-diff]'); if (d){ QZS.diff = +d.dataset.diff; qzSave(); SFX.blip(); qzHome(); qzEl().querySelector(`[data-diff="${QZS.diff}"]`).focus(); return; }
+  const c = e.target.closest('[data-count]'); if (c){ QZS.count = +c.dataset.count; qzSave(); SFX.blip(); qzHome(); qzEl().querySelector(`[data-count="${QZS.count}"]`).focus(); return; }
   const b = e.target.closest('[data-qz]'); if (!b) return;
-  const a = b.dataset.qz;
-  if (a === 'start') qzStart();
-  else if (a === 'parent'){ SFX.blip(); qzParent(); }
-  else if (a === 'home'){ SFX.blip(); qzHome(); }
-  else if (a === 'clear'){
-    if (!b.dataset.sure){ b.dataset.sure = '1'; b.textContent = '⚠️ 再按一次，確定清除'; return; }
-    QZS = { stage:1, seen:[], log:{ asked:0, firstRight:0, wrong:0, cats:{}, words:{}, recent:[] } }; qzSave(); qzParent();
-  }
+  if (b.dataset.qz === 'start') qzStart();
+  else if (b.dataset.qz === 'again'){ SFX.blip(); qzHome(); }
 }
 
 /* ================= 說明、開關、開始 ================= */
 const HELP_KID = [
-  ['🖼️', 'ㄎㄢˋ ㄊㄨˊ ㄏㄜˊ ㄗˋ', '看圖和字'],
-  ['👆', 'ㄉㄧㄢˇ ㄉㄨㄟˋ ˙ㄉㄜ ㄓㄨˋ ㄧㄣ', '點對的注音'],
+  ['⚙️', 'ㄒㄩㄢˇ ㄋㄢˊ ㄉㄨˋ ㄏㄜˊ ㄊㄧˊ ㄕㄨˋ', '選難度和題數'],
+  ['🖼️', 'ㄎㄢˋ ㄊㄨˊ ㄏㄜˊ ㄗˋ，ㄉㄧㄢˇ ㄉㄨㄟˋ ˙ㄉㄜ ㄓㄨˋ ㄧㄣ', '看圖和字，點對的注音'],
+  ['🥫', 'ㄉㄚˊ ㄉㄨㄟˋ ㄋㄚˊ ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ', '答對拿飼料罐'],
   ['💔', 'ㄉㄚˊ ㄘㄨㄛˋ ㄎㄡˋ ㄧ ㄎㄜ ㄞˋ ㄒㄧㄣ', '答錯扣一顆愛心'],
-  ['❤️', 'ㄌㄧㄢˊ ㄉㄨㄟˋ ㄙㄢ ㄊㄧˊ ㄅㄨˇ ㄧ ㄎㄜ', '連對三題補一顆'],
-  ['🚩', 'ㄗㄡˇ ㄉㄠˋ ㄑㄧˊ ˙ㄗ ㄐㄧㄡˋ ㄍㄨㄛˋ ㄍㄨㄢ', '走到旗子就過關']];
-const HELP_PARENT = '畫面中間會出現一個東西或動作的像素圖和國字，下面有 2～3 個注音，孩子要選出正確的那一個（第 1、2 關兩個選項，第 3 關起三個；電腦也可以按 1～3）。題庫有 108 個一年級常用詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。上方是前進的路和 5 顆愛心：答對會有「叮叮叮」的音效、電腦會唸出這個詞，小朋友往前走一步；答錯會有低沉的「嗶嗶」聲並扣一顆心，可以再選到對為止，但扣掉的心不會因為選對就補回來，連續三題第一次就答對才補一顆。家長不用在旁邊，聽聲音就知道孩子答得對不對。20 題走到旗子就過關，愛心用完會顯示「再接再厲」，接著跳出遊戲回到首頁，要重新開始這一關。每一關結束會列出這一關選錯的詞；「家長紀錄」統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，之後每一關也會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
+  ['🐷', 'ㄗㄞˋ ㄋㄨㄥˊ ㄔㄤˇ ㄨㄟˋ ㄉㄨㄥˋ ㄨˋ', '在農場餵動物'],
+  ['🐾', 'ㄔ ㄅㄠˇ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ ㄏㄨㄟˋ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ', '吃飽的動物會跟著你']];
+const HELP_PARENT = '每次開始先選難度和題數：簡單二選一、中等三選一、困難四選一；題數 10、20 或 30 題（預設 10 題），按「確定」開始。畫面中間是一個東西或動作的像素圖和國字，下面是注音選項，選出正確的那一個（電腦也可以按 1～4）。題庫有 108 個一年級常用詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。答對會有「叮叮叮」的音效、電腦會唸出這個詞；第一次就答對可以拿到一個飼料罐。答錯會有低沉的「嗶嗶」聲並扣一顆愛心，可以再選到對為止，5 顆愛心扣光會顯示「再接再厲」並回到開始畫面。家長不用在旁邊，聽聲音就知道孩子答得對不對。題目做完會到農場，點喜歡的動物就餵一罐，餵滿 3 罐動物吃飽了就會跟著你走，可以一直餵下一隻；沒用完的飼料罐和跟著你的動物會留到下次。也可以不餵，直接按「再玩一次」。上方的「錯題紀錄」隨時可以看，會統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，也可以清空；之後出題時會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
 function openHelp(){
   SFX.blip();
   $('modal').innerHTML = `<div class="qz-panel">
@@ -529,8 +638,16 @@ function openHelp(){
   $('modal').hidden = false;
   setTimeout(() => $('modal').querySelector('[data-close]').focus(), 30);
 }
-const closeHelp = () => { $('modal').hidden = true; $('btnHelp').focus(); };
-$('modal').addEventListener('click', e => { if (e.target === $('modal') || e.target.closest('[data-close]')) closeHelp(); });
+const closeHelp = () => { $('modal').hidden = true; };
+$('modal').addEventListener('click', e => {
+  if (e.target === $('modal') || e.target.closest('[data-close]')){ closeHelp(); return; }
+  const c = e.target.closest('[data-clearlog]');
+  if (c){   // 清空：在畫面上再按一次確認
+    if (!c.dataset.sure){ c.dataset.sure = '1'; c.textContent = '⚠️ 再按一次，確定清空'; return; }
+    QZS.log = emptyLog(); QZS.seen = []; qzSave(); openLog();
+  }
+});
+$('btnLog').onclick = openLog;
 $('btnHelp').onclick = openHelp;
 const toggle = (btn, on) => btn.setAttribute('aria-pressed', String(on));
 $('btnSnd').onclick = () => { muted = !muted; toggle($('btnSnd'), !muted); if (!muted) SFX.blip(); };
@@ -539,7 +656,7 @@ if (!canSpeak) $('btnVoice').hidden = true;
 $('stage').addEventListener('click', e => { audio(); qzClick(e); });
 addEventListener('keydown', e => {
   if (!$('modal').hidden){ if (e.key === 'Escape') closeHelp(); return; }
-  if (QZ && /^[1-3]$/.test(e.key)){ e.preventDefault(); qzAnswer(+e.key - 1); }
+  if (QZ && /^[1-4]$/.test(e.key)){ e.preventDefault(); qzAnswer(+e.key - 1); }
 });
 $('logoText').innerHTML = Z('ㄓㄨˋ ㄧㄣ ㄉㄚˋ ㄊㄧㄠˇ ㄓㄢˋ', '注音大挑戰');
 qzHome();

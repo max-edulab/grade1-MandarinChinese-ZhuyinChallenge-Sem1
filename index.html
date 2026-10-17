@@ -202,6 +202,7 @@ button{font:inherit;color:inherit}
 #ctCv{touch-action:none}
 .trash-n{font-family:var(--f-px);font-size:.8em;color:var(--brick)}
 .farm-block{position:absolute;inset:0;z-index:6;background:rgba(18,20,60,.45)}
+.farm-cv.zoom{aspect-ratio:1/1}
 .farm-cv{display:block;width:100%;max-width:100%;aspect-ratio:16/10;image-rendering:pixelated;image-rendering:crisp-edges;border:4px solid var(--ink);box-shadow:6px 6px 0 rgba(0,0,0,.25);cursor:pointer;touch-action:manipulation}
 .farm-tip{align-self:center;font-weight:700;font-size:16px;background:rgba(255,255,255,.75);border:2px solid var(--ink);padding:1px 10px;text-align:center}
 .farm-field{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:12px;border:4px solid var(--ink);
@@ -245,7 +246,9 @@ button{font:inherit;color:inherit}
   .map-wrap{width:100%}
   .map-side{display:none}
   .map-top{display:flex;justify-content:space-between;align-items:center;gap:6px;width:100%}
-  .farm{width:calc(100% + 12px);margin-inline:-6px}
+  .farm{width:calc(100% + 12px);margin-inline:-6px;gap:6px}
+  .farm-tip{font-size:13px;padding:1px 6px}
+  .farm-say{font-size:16px;padding:1px 8px;gap:6px}
   .map-top > *{font-weight:900;font-size:15px;border:3px solid var(--ink);padding:1px 6px;white-space:nowrap}
   .map-top .gate-lab{background:var(--paper)}
   .map-top .map-name{background:var(--gold)}
@@ -1699,6 +1702,7 @@ function farmStart(){
   Object.defineProperty(FM, 'animals', { get(){ return this.world[this.mi].animals; }, set(v){ this.world[this.mi].animals = v; } });
   populate(0);
   resetTrail(-1);
+  setupView();
   FM.cv.addEventListener('pointerdown', farmTap);
   mapLabels();
   requestAnimationFrame(farmLoop);
@@ -1708,6 +1712,7 @@ function switchMap(dir){
   const M = FM, me = M.me;
   M.mi = (M.mi + dir + WORLD.length) % WORLD.length;
   me.x = dir > 0 ? 1 : FW - 2; me.px = me.x * FT; me.py = me.y * FT; me.path = []; M.target = null; me.face = dir;
+  M.camSnap = true;
   if (!M.world[M.mi]) populate(M.mi);
   resetTrail(-dir);
   closeAsk(); mapLabels(); SFX.blip();
@@ -1832,7 +1837,8 @@ function feedFollower(id){
 function farmTap(e){
   closeAsk();
   const r = FM.cv.getBoundingClientRect();
-  const px = (e.clientX - r.left) / r.width * FW * FT, py = (e.clientY - r.top) / r.height * FH * FT;
+  const vw = FM.view ? FM.view.w : FW * FT, vh = FM.view ? FM.view.h : FH * FT, cx0 = FM.view && FM.cam ? Math.round(FM.cam.x) : 0, cy0 = FM.view && FM.cam ? Math.round(FM.cam.y) : 0;
+  const px = cx0 + (e.clientX - r.left) / r.width * vw, py = cy0 + (e.clientY - r.top) / r.height * vh;   // 換成整張地圖上的座標
   if (FM.act && FM.act.type === 'surf'){ FM.act.aim = { x:px - 8, y:py - 8 }; FM.act.dir = null; return; }   // 衝浪中：往點的地方滑
   // 先看是不是點到跟著你的動物（點到就餵牠，血條補滿）
   let best = -1, bd = 1e9;
@@ -1855,7 +1861,7 @@ function farmTap(e){
     if (path){ me.path = path; FM.target = null; } else SFX.no();
     return;
   }
-  farmGo(Math.floor((e.clientX - r.left) / r.width * FW), Math.floor((e.clientY - r.top) / r.height * FH));
+  farmGo(Math.floor(px / FT), Math.floor(py / FT));
 }
 function farmKey(dx, dy){
   if (FM.act && FM.act.type === 'surf'){ Object.assign(FM.act, { dir:[dx, dy], dirUntil:FM.frame + 14, aim:null }); return; }   // 衝浪中：方向鍵控制
@@ -1905,8 +1911,42 @@ function farmLoop(){
   drawFarm();
   requestAnimationFrame(farmLoop);
 }
+// 手機上地圖放大：只顯示 12×12 格，鏡頭跟著小朋友（或正在玩的東西）移動，所有地方都還在
+const PHONE_VIEW = 12;
+const phoneView = () => matchMedia('(max-width:640px)').matches;
+function setupView(){
+  const M = FM; if (!M) return;
+  if (phoneView()){
+    M.view = { w:PHONE_VIEW * FT, h:PHONE_VIEW * FT };
+    M.full = M.full || document.createElement('canvas'); M.full.width = FW * FT; M.full.height = FH * FT;
+    M.cv.width = M.view.w; M.cv.height = M.view.h; M.cv.classList.add('zoom'); M.cam = null;
+  } else {
+    M.view = null; M.full = null; M.cv.width = FW * FT; M.cv.height = FH * FT; M.cv.classList.remove('zoom');
+  }
+}
+addEventListener('resize', () => { if (FM && !!FM.view !== phoneView()) setupView(); });
+// 鏡頭要看哪裡
+function camFocus(){
+  const M = FM, A = M.act, me = M.me;
+  if (A && A.type === 'surf') return { x:A.x + 8, y:A.y + 8 };
+  if (A && A.type === 'fest') return { x:FEST.x * FT + 8, y:FEST.y * FT + 8 };
+  if (A && A.type === 'carousel') return { x:CAROUSEL.x * FT + 8, y:CAROUSEL.y * FT + 8 };
+  if (A && A.type === 'boat') return { x:M.boat.x + 16, y:2 * FT + 8 };
+  if (M.ride && M.ride.phase === 'fly'){ const P = rocketPose(M.ride, Math.min(1, M.ride.t / RIDE_FRAMES)); return { x:P.x, y:Math.max(FT, P.y) }; }
+  return { x:me.px + 8, y:me.py + 8 };
+}
 function drawFarm(){
-  const M = FM, g = M.cv.getContext('2d');
+  drawWorld();
+  const M = FM; if (!M.view) return;
+  const f = camFocus(), W = FW * FT, H = FH * FT, v = M.view;
+  const tx = Math.max(0, Math.min(W - v.w, f.x - v.w / 2)), ty = Math.max(0, Math.min(H - v.h, f.y - v.h / 2));
+  if (!M.cam || M.camSnap){ M.cam = { x:tx, y:ty }; M.camSnap = false; }
+  else { M.cam.x += (tx - M.cam.x) * .15; M.cam.y += (ty - M.cam.y) * .15; }
+  const g = M.cv.getContext('2d'); g.imageSmoothingEnabled = false;
+  g.drawImage(M.full, Math.round(M.cam.x), Math.round(M.cam.y), v.w, v.h, 0, 0, v.w, v.h);
+}
+function drawWorld(){
+  const M = FM, g = (M.full || M.cv).getContext('2d');
   g.imageSmoothingEnabled = false;
   g.drawImage(getBg(M.mi), 0, 0);
   const ents = [];

@@ -178,7 +178,7 @@ button{font:inherit;color:inherit}
 .farm-res .sm{font-size:15px;color:var(--muted)}
 .farm-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .farm-head b{font-size:26px;color:var(--white);text-shadow:2px 2px 0 var(--ink)}
-.farm-say{align-self:center;font-weight:900;font-size:20px;background:rgba(255,255,255,.85);border:3px solid var(--ink);padding:2px 12px;text-align:center}
+.farm-say{align-self:center;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;font-weight:900;font-size:20px;background:rgba(255,255,255,.85);border:3px solid var(--ink);padding:2px 12px;text-align:center}
 .farm-cv{align-self:center;width:min(100%,calc((100vh - 320px) * 1.6),860px);max-width:100%;aspect-ratio:16/10;image-rendering:pixelated;image-rendering:crisp-edges;border:4px solid var(--ink);box-shadow:6px 6px 0 rgba(0,0,0,.25);cursor:pointer;touch-action:manipulation}
 .farm-tip{align-self:center;font-weight:700;font-size:16px;background:rgba(255,255,255,.75);border:2px solid var(--ink);padding:1px 10px;text-align:center}
 .farm-field{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:12px;border:4px solid var(--ink);
@@ -904,10 +904,9 @@ function qzFarm(res){
   const left = FARM_ALL.filter(a => !QZS.pets.includes(a.id)).length;
   qzEl().innerHTML = `<div class="farm">
     <div class="farm-tip">👆 ${Z('ㄉㄧㄢˇ ㄉㄧˋ ㄊㄨˊ ㄗㄡˇ ㄌㄨˋ，ㄉㄧㄢˇ ㄉㄨㄥˋ ㄨˋ ㄨㄟˋ ㄊㄚ ㄧ ㄍㄨㄢˋ，ㄊㄚ ㄐㄧㄡˋ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ', '點地圖走路，點動物餵牠一罐，牠就跟著你')}；${Z('ㄉㄧㄢˇ ㄍㄣ ˙ㄓㄜ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ ㄎㄜˇ ㄧˇ ㄅㄨˇ ㄇㄢˇ ㄒㄧㄝˇ', '點跟著的動物可以補滿血')}</div>
-    <div class="farm-head"><b>🌾 ${Z('ㄋㄨㄥˊ ㄔㄤˇ', '農場')}</b><span id="farmCans">${canHtml(QZS.cans)}</span></div>
-    <div class="farm-say" id="farmSay">${!left ? Z('ㄉㄨㄥˋ ㄨˋ ㄉㄡ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ ˙ㄌㄜ！', '動物都跟著你了！')
+    <div class="farm-say"><span id="farmSay">${!left ? Z('ㄉㄨㄥˋ ㄨˋ ㄉㄡ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ ˙ㄌㄜ！', '動物都跟著你了！')
       : QZS.cans ? Z('ㄉㄧㄢˇ ㄉㄨㄥˋ ㄨˋ，ㄗㄡˇ ㄍㄨㄛˋ ㄑㄩˋ ㄨㄟˋ ㄊㄚ！', '點動物，走過去餵牠！')
-      : Z('ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ ㄩㄥˋ ㄨㄢˊ ˙ㄌㄜ，ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ ˙ㄅㄚ！', '飼料罐用完了，再玩一次吧！')}</div>
+      : Z('ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ ㄩㄥˋ ㄨㄢˊ ˙ㄌㄜ，ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ ˙ㄅㄚ！', '飼料罐用完了，再玩一次吧！')}</span><span id="farmCans">${canHtml(QZS.cans)}</span></div>
     <canvas class="farm-cv" id="farmCv" width="${FW * FT}" height="${FH * FT}" aria-label="農場地圖：點地圖走路，點動物餵牠"></canvas>
     <div class="qz-row"><button class="btn" data-qz="again" data-focus>🔁 ${Z('ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ', '再玩一次')}</button></div>
   </div>`;

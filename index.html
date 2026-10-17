@@ -1846,9 +1846,10 @@ function farmTap(e){
   if (best >= 0 && bd <= 11){ audio(); askFollower(QZS.pets[best]); return; }
   if (FM.me.fly || FM.ride || FM.act) return;
   if (FM.mi === BEACH_MI){   // 點船就去船停的碼頭；點衝浪區的海就去衝浪板架
-    const b = FM.boat;
+    const b = FM.boat, ttx = Math.floor(px / FT), tty = Math.floor(py / FT), tch = (mapRows(FM.mi)[tty] || '')[ttx];
+    if (tch === 'K'){ audio(); farmGo(ttx, tty); return; }   // 點碼頭：走到碼頭上船
     if (px >= b.x - 4 && px <= b.x + 38 && py >= FT - 10 && py <= 3 * FT){ audio(); farmGo(...PIERS[b.at]); return; }
-    if (py < 4 * FT && px >= SURF.x0 && px <= SURF.x1 + FT){ audio(); farmGo(...SURF.rack); return; }
+    if (tch === '~' && px >= SURF.x0 && px <= SURF.x1 + FT){ audio(); farmGo(...SURF.rack); return; }
   }
   const rk = !FM.me.sliding && rocketHit(px, py);
   if (rk){ audio(); goRocket(rk); return; }

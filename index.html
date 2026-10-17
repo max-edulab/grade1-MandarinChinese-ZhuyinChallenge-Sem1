@@ -157,11 +157,17 @@ button{font:inherit;color:inherit}
 .qz-can img{width:26px;height:26px;image-rendering:pixelated}
 .qz-can.pop{animation:qzPop .4s steps(4)}
 @keyframes qzPop{50%{transform:scale(1.35)}}
-.qz-mine{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
-.qz-party{display:flex;align-items:flex-end;gap:2px;flex-wrap:wrap;justify-content:center}
-.qz-party img{height:40px;width:auto;image-rendering:pixelated;animation:qzHop .8s steps(2) infinite}
+.qz-mine{display:flex;align-items:center;gap:12px;width:100%}
+.qz-mine .qz-can{flex:none}
+/* 你和寵物排成一列往左走，走出左邊再從右邊出來；不換行 */
+.qz-party{flex:1;min-width:0;height:56px;position:relative;overflow:hidden}
+.qz-party .lane{position:absolute;left:0;bottom:2px;display:flex;align-items:flex-end;animation:qzParade var(--t,10s) linear infinite}
+.qz-party .grp{flex:none;display:flex;align-items:flex-end;gap:2px}
+.qz-party img{height:40px;width:auto;max-width:none;image-rendering:pixelated;animation:qzHop .8s steps(2) infinite}
 .qz-party img.pet{width:48px;height:40px}
-.qz-party img.me{width:44px;height:50px}
+.qz-party img.me{width:44px;height:50px;scale:-1 1}
+@keyframes qzParade{from{transform:translateX(0)}to{transform:translateX(calc(-1 * var(--p,300px)))}}
+@media (prefers-reduced-motion:reduce){.qz-party .lane{animation:none}}
 /* 農場 */
 .farm{position:relative;margin:auto;width:min(860px,100%);display:flex;flex-direction:column;gap:10px}
 /* 問要不要餵跟著的動物 */
@@ -241,7 +247,7 @@ button{font:inherit;color:inherit}
       <button class="chip" id="btnSnd" aria-pressed="true" title="音效開關">🔊 音效</button>
       <button class="chip" id="btnLog" title="給家長看的錯題紀錄，可以清空">📋 錯題紀錄</button>
       <button class="chip" id="btnHelp" title="遊戲說明和給家長">📖 說明</button>
-      <a class="chip" href="https://max-edulab.github.io/home/">🏠 主畫面</a>
+      <button class="chip" id="btnHome">🏠 主畫面</button>
     </div>
   </header>
   <main class="stage" id="stage" aria-live="polite"></main>
@@ -586,7 +592,17 @@ const picUrl = e => PIC_CACHE[e] || (PIC_CACHE[e] = emojiSprite(e).toDataURL());
 const stepsHtml = (res, total) => Array.from({ length:total }, (_, i) =>
   res[i] === 'ok' ? `<img class="qz-step can" src="${picUrl('🥫')}" alt="">` : res[i] === 'no' ? '<i class="qz-step x">✕</i>' : '<i class="qz-step"></i>').join('');
 const canHtml = n => `<span class="qz-can"><img src="${picUrl('🥫')}" alt="飼料罐">×<b>${n}</b></span>`;
-const partyHtml = () => `<div class="qz-party"><img class="me" src="${WALKER}" alt="你">${QZS.pets.map((id, k) => `<img class="pet" src="${animalUrl(id)}" alt="${farmBy(id).h}" style="animation-delay:${(k + 1) * .12}s">`).join('')}</div>`;
+const partyGrp = hide => `<div class="grp"${hide ? ' aria-hidden="true"' : ''}><img class="me" src="${WALKER}" alt="${hide ? '' : '你'}">${QZS.pets.map((id, k) => `<img class="pet" src="${animalUrl(id)}" alt="${hide ? '' : farmBy(id).h}" style="animation-delay:${(k + 1) * .12}s">`).join('')}</div>`;
+const partyHtml = () => `<div class="qz-party" id="party"><div class="lane">${partyGrp(false)}${partyGrp(true)}</div></div>`;
+// 隊伍一直往左走：一圈的長度＝畫面寬，隊伍比畫面長的話＝隊伍長＋空兩格（下一隊的小偵探跟在後面空兩格出現）
+function fitParade(){
+  const box = $('party'); if (!box) return;
+  const grps = box.querySelectorAll('.grp'), w = grps[0].offsetWidth, slot = 50;
+  const p = Math.max(box.clientWidth, w + slot * 2);
+  grps[1].style.marginLeft = (p - w) + 'px';
+  box.style.setProperty('--p', p + 'px'); box.style.setProperty('--t', (p / 45).toFixed(1) + 's');
+}
+addEventListener('resize', fitParade);
 const focusFirst = () => setTimeout(() => { const f = qzEl().querySelector('[data-focus]') || qzEl().querySelector('button'); if (f) f.focus({ preventScroll:true }); }, 30);
 
 // 開始畫面：選難度、選題數，按確定開始
@@ -607,6 +623,7 @@ function qzHome(){
     ${QZS.pets.length || QZS.cans ? `<div class="qz-mine">${partyHtml()}${QZS.cans ? canHtml(QZS.cans) : ''}</div>` : ''}
     <div class="qz-row"><button class="btn" data-qz="start" data-focus>${Z('ㄑㄩㄝˋ ㄉㄧㄥˋ', '確定')} ▶</button></div>
   </div>`;
+  fitParade();
   focusFirst();
 }
 // 出題：以前錯過的詞優先複習（最多三分之一），其他挑還沒考過的
@@ -1145,6 +1162,7 @@ $('modal').addEventListener('click', e => {
 });
 $('btnLog').onclick = openLog;
 $('btnHelp').onclick = openHelp;
+$('btnHome').onclick = () => { audio(); SFX.blip(); closeHelp(); FM = null; qzHome(); };   // 回到遊戲一開始（選難度）的畫面
 const toggle = (btn, on) => btn.setAttribute('aria-pressed', String(on));
 $('btnSnd').onclick = () => { muted = !muted; toggle($('btnSnd'), !muted); if (!muted) SFX.blip(); };
 $('btnVoice').onclick = () => { voiceOn = !voiceOn; toggle($('btnVoice'), voiceOn); if (voiceOn) speak('注音'); else if (canSpeak) speechSynthesis.cancel(); };

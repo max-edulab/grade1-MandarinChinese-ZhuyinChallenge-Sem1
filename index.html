@@ -824,7 +824,7 @@ const MAPS = {
     'E======================E',
     'E....b.....=..b........E',
     '#..........=......*....#',
-    '#.....*....=...........#',
+    '#.LSSSSSS..=...........#',
     '#..T.......=.*......T..#',
     '#.......T..=....T......#',
     '#.*........=.....*.....#',
@@ -883,7 +883,18 @@ const WORLD = [
   { id:'maze',  name:['迷宮', 'ㄇㄧˊ ㄍㄨㄥ'] },
   { id:'space', name:['外太空', 'ㄨㄞˋ ㄊㄞˋ ㄎㄨㄥ'] },
   { id:'beach', name:['海邊', 'ㄏㄞˇ ㄅㄧㄢ'] }];
-const FSOLID = '#BT~FbHCRPU';
+const FSOLID = '#BT~FbHCRPUS';
+// 溜滑梯（公園）：走到梯子上就往右溜到底，跟著的動物一起溜，溜的路不算步數
+const SLIDE = { mi:1, x:2, y:10, len:7 };   // 梯子在 (2,10)，溜 7 格到 (9,10)
+const SLIDE_W = (SLIDE.len - 1) * FT;
+// 溜的時候人和動物在滑道上的高度（越前面越高）
+function slideOff(px, py){
+  if (!FM || FM.mi !== SLIDE.mi || py !== SLIDE.y * FT) return 0;
+  const x0 = SLIDE.x * FT;
+  if (px <= x0 - FT || px >= x0 + SLIDE.len * FT) return 0;
+  if (px < x0) return -Math.round(10 * (px - (x0 - FT)) / FT);   // 爬上梯子
+  return -Math.round(10 * Math.min(1, Math.max(0, 1 - (px - x0 - FT) / SLIDE_W)));
+}
 // 全部答對的獎勵：農場上下的入口打開，通到「罐子迷宮」，沿路有罐子可以撿（每次全對都會重新變一個迷宮）
 const MAZE_UP = WORLD.length, MAZE_DOWN = WORLD.length + 1, MAZE_CANS = 8;
 const MAZE_COUNT = 100, MAZE_TIME = 30;   // 共 100 個迷宮；兩個迷宮加起來只能待 30 秒
@@ -985,6 +996,19 @@ function renderMapBg(id, rows){
   }
   const fount = first('F');
   if (fount){ const [fx, fy] = fount; disc(g, fx + 16, fy + 18, 15, 11, (d, xx, yy) => d > .85 ? INK : d > .62 ? '#c8c8d4' : (xx + yy < 0 ? '#8cc8ff' : '#3c8ce0')); fP(g, fx + 15, fy + 6, INK, 3, 12); fP(g, fx + 16, fy + 7, '#c8c8d4', 1, 10); disc(g, fx + 16, fy + 6, 4, 3, (d) => d > .7 ? INK : '#8cc8ff'); }
+  const ladder = first('L');
+  if (ladder){
+    const [sx, sy] = ladder;
+    for (let i = 0; i <= SLIDE_W + 8; i++){   // 滑道：從梯子頂端斜斜往右下
+      const x = sx + FT + i, top = sy - 6 + Math.round(10 * Math.min(1, i / SLIDE_W));
+      fP(g, x, top + 10, 'rgba(0,0,0,.15)', 1, Math.max(0, sy + 14 - top - 10));
+      fP(g, x, top, INK); fP(g, x, top + 1, '#e83838'); fP(g, x, top + 2, '#ffd23c', 1, 6); fP(g, x, top + 4, '#ffe890'); fP(g, x, top + 8, '#e83838'); fP(g, x, top + 9, INK);
+    }
+    [[sx + FT + 30, 0], [sx + FT + 62, 0]].forEach(([lx]) => { const t = sy - 6 + Math.round(10 * (lx - sx - FT) / SLIDE_W); fP(g, lx, t + 10, INK, 2, sy + 15 - t - 10); });
+    fP(g, sx + 1, sy - 12, INK, 15, 28); fP(g, sx + 2, sy - 11, '#5c8cd8', 13, 26);   // 梯子
+    for (let k = 0; k < 6; k++) fP(g, sx + 4, sy - 8 + k * 4, '#d8e4f4', 9, 1);
+    fP(g, sx, sy - 14, INK, 17, 4); fP(g, sx + 1, sy - 13, '#ffd23c', 15, 2);
+  }
   const planet = first('P');
   if (planet){ const [px, py] = planet; disc(g, px + 16, py + 16, 12, 12, (d, xx, yy) => d > .88 ? INK : (xx + yy > 6 ? '#c86a3a' : '#e8904c')); fP(g, px - 1, py + 15, '#ffd890', 34, 2); fP(g, px - 1, py + 17, INK, 34, 1); }
   // 入口兩邊的石柱
@@ -1001,7 +1025,7 @@ const fWalk = (x, y, skip) => {
 function populate(mi){
   const rows = mapRows(mi), list = [];
   const free = [];
-  for (let y = 1; y < FH - 1; y++) for (let x = 2; x < FW - 2; x++) if (!FSOLID.includes(rows[y][x]) && Math.abs(x - FM.me.x) + Math.abs(y - FM.me.y) > 3) free.push({ x, y });
+  for (let y = 1; y < FH - 1; y++) for (let x = 2; x < FW - 2; x++) if (!FSOLID.includes(rows[y][x]) && rows[y][x] !== 'L' && !(mi === SLIDE.mi && y === SLIDE.y && x <= SLIDE.x + SLIDE.len) && Math.abs(x - FM.me.x) + Math.abs(y - FM.me.y) > 3) free.push({ x, y });
   shuffle(free);
   FARM_ALL.filter(a => !QZS.pets.includes(a.id) && homeOf(a.id) === mi).forEach(a => {
     const spot = free.find(f => !list.some(o => Math.abs(o.x - f.x) + Math.abs(o.y - f.y) < 2));
@@ -1132,7 +1156,7 @@ function petStep(){
     let spot = null;
     for (let r = 0; r < 6 && !spot; r++) for (let dy = -r; dy <= r && !spot; dy++) for (let dx = -r; dx <= r && !spot; dx++){
       const x = sx + dx, y = sy + dy;
-      if (fWalk(x, y) && !'EV'.includes(mapRows(FM.mi)[y][x]) && !(x === FM.me.x && y === FM.me.y) && !FM.me.path.some(([px, py]) => px === x && py === y)) spot = { x, y };
+      if (fWalk(x, y) && !'EVL'.includes(mapRows(FM.mi)[y][x]) && !(FM.mi === SLIDE.mi && y === SLIDE.y && x <= SLIDE.x + SLIDE.len) && !(x === FM.me.x && y === FM.me.y) && !FM.me.path.some(([px, py]) => px === x && py === y)) spot = { x, y };
     }
     QZS.pets.splice(k, 1); delete QZS.petSteps[id];
     if (spot) FM.animals.push({ ...farmBy(id), sp:spOf(id), id, x:spot.x, y:spot.y, bob:0, munch:0 });
@@ -1154,6 +1178,8 @@ function farmPath(sx, sy, goals){
 const nextTo = (a, x, y) => Math.abs(a.x - x) + Math.abs(a.y - y) === 1;
 function farmGo(tx, ty){
   const M = FM, me = M.me, a = M.animals.find(o => o.x === tx && o.y === ty);
+  if (me.sliding) return;
+  if (M.mi === SLIDE.mi && mapRows(M.mi)[ty] && mapRows(M.mi)[ty][tx] === 'S'){ tx = SLIDE.x; ty = SLIDE.y; }
   audio();
   if (a){
     if (nextTo(a, me.x, me.y) && !me.path.length){ feedAnimal(a); return; }
@@ -1208,7 +1234,7 @@ function farmTap(e){
   farmGo(Math.floor((e.clientX - r.left) / r.width * FW), Math.floor((e.clientY - r.top) / r.height * FH));
 }
 function farmKey(dx, dy){
-  const me = FM.me; if (me.path.length || qzEl().querySelector('.farm-block')) return;
+  const me = FM.me; if (me.path.length || me.sliding || qzEl().querySelector('.farm-block')) return;
   if (dx) me.face = dx;
   const nx = me.x + dx, ny = me.y + dy, a = FM.animals.find(o => o.x === nx && o.y === ny);
   if (a){ feedAnimal(a); return; }   // 撞到動物就餵牠
@@ -1220,13 +1246,21 @@ function farmLoop(){
   M.frame++;
   if (mazeTick()){ requestAnimationFrame(farmLoop); return; }
   const me = M.me;
-  if (me.path.length){
+  for (let rep = me.sliding ? 2 : 1; rep > 0 && me.path.length; rep--){
     const [tx, ty] = me.path[0], gx = tx * FT, gy = ty * FT;
     if (gx !== me.px) me.face = gx > me.px ? 1 : -1;
     me.px += Math.sign(gx - me.px) * Math.min(2, Math.abs(gx - me.px)); me.py += Math.sign(gy - me.py) * Math.min(2, Math.abs(gy - me.py));
-    M.hist.push({ x:me.px, y:me.py }); if (M.hist.length > 600) M.hist.shift();
+    M.hist.push({ x:me.px, y:me.py + slideOff(me.px, me.py) }); if (M.hist.length > 600) M.hist.shift();
     if (me.px === gx && me.py === gy){
-      me.x = tx; me.y = ty; me.path.shift(); petStep();
+      me.x = tx; me.y = ty; me.path.shift(); if (!me.sliding) petStep();
+      if (me.sliding && !me.path.length){ me.sliding = false; const say = $('farmSay'); if (say) say.innerHTML = Z('ㄏㄠˇ ㄏㄠˇ ㄨㄢˊ！', '好好玩！'); }
+      if (M.mi === SLIDE.mi && tx === SLIDE.x && ty === SLIDE.y && !me.sliding){   // 走到梯子：開始溜
+        me.sliding = true; me.face = 1; M.target = null;
+        me.path = Array.from({ length:SLIDE.len }, (_, k) => [SLIDE.x + 1 + k, SLIDE.y]);
+        SFX.clear(); const say = $('farmSay'); if (say) say.innerHTML = `${Z('ㄒㄧㄡ～ ㄌㄧㄡ ㄏㄨㄚˊ ㄊㄧ！', '咻～溜滑梯！')}`;
+        setTimeout(() => speak('咻'), 50);
+        break;
+      }
       if (mapRows(M.mi)[ty][tx] === 'E'){ switchMap(tx === 0 ? -1 : 1); requestAnimationFrame(farmLoop); return; }
       if (mapRows(M.mi)[ty][tx] === 'V'){ switchMaze(M.mi === 0 ? (ty === 0 ? MAZE_UP : MAZE_DOWN) : 0, ty); requestAnimationFrame(farmLoop); return; }
       pickCan();
@@ -1269,7 +1303,7 @@ function drawFarm(){
     const walk = M.me.path.length ? (Math.floor(M.frame / 6) % 2 ? -2 : 0) : 0;
     fP(g, M.me.px + 2, M.me.py + 14, 'rgba(0,0,0,.25)', 12, 2);
     g.save(); if (M.me.face < 0){ g.translate(M.me.px * 2 + 16, 0); g.scale(-1, 1); }
-    g.drawImage(KID, M.me.px - 3, M.me.py - 9 + walk); g.restore();
+    g.drawImage(KID, M.me.px - 3, M.me.py - 9 + (M.me.sliding ? 0 : walk) + slideOff(M.me.px, M.me.py)); g.restore();
   } });
   ents.sort((a, b) => a.y - b.y).forEach(e => e.f());
 }
@@ -1353,7 +1387,7 @@ const HELP_KID = [
   ['🐷', 'ㄗㄞˋ ㄋㄨㄥˊ ㄔㄤˇ ㄨㄟˋ ㄉㄨㄥˋ ㄨˋ', '在農場餵動物'],
   ['🐾', 'ㄨㄟˋ ㄍㄨㄛˋ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ ㄏㄨㄟˋ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ', '餵過的動物會跟著你'],
   ['😋', 'ㄗㄡˇ ㄊㄞˋ ㄐㄧㄡˇ，ㄉㄨㄥˋ ㄨˋ ㄏㄨㄟˋ ㄜˋ ˙ㄉㄜ ㄉㄧㄠˋ ㄉㄨㄟˋ', '走太久，動物會餓得掉隊']];
-const HELP_PARENT = '每次開始先選難度和題數：簡單二選一、中等三選一、困難四選一；題數 10、20 或 30 題（預設 10 題），按「確定」開始。畫面中間是一個東西或動作的像素圖和國字，下面是注音選項，選出正確的那一個（電腦也可以按 1～4）。題庫有 500 個一年級常見的詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。答對會有「叮叮叮」的音效、電腦會唸出這個詞；上方有一排空罐，題數幾題就有幾個，第一次就答對的題目，罐子就會裝滿飼料；題目做完時，簡單每答對一題拿 1 罐、中等拿 2 罐、困難拿 3 罐；答錯會有低沉的「嗶嗶」聲，這一題就拿不到罐子，可以再選到對為止。家長不用在旁邊，聽聲音就知道孩子答得對不對。題目做完會到農場地圖（左右有大入口，連著公園、迷宮、外太空、海邊，往同一邊走五張會回到農場；15 種動物分散住在這五張地圖）：動物散在地圖上，點地圖小朋友就會走過去，點動物會走到牠旁邊餵一罐（電腦也可以用方向鍵走路，撞到動物就餵），餵一罐動物就會排在後面跟著你走，可以一直餵下一隻；每種動物各有 2 隻；跟著你的動物走路時頭上會顯示血條，走的步數超過地圖的格子數（24×15＝360 步）就會肚子餓、掉隊，留在原地等你再去餵；點跟著你的動物會顯示牠的血條和還可以走幾步，並問要不要現在餵牠，餵一罐血條就補滿；沒用完的飼料罐和跟著你的動物會留到下次。也可以不餵，直接按「再玩一次」。如果題目全部第一次就答對，農場上下的入口會打開，通到「罐子迷宮」（共 100 個迷宮，每次全對隨機挑兩個），迷宮的路上有罐子可以撿；只有小朋友能進迷宮，動物在外面等，兩個迷宮加起來只能待 30 秒，時間到會自動回到農場；飼料罐用完而且迷宮也沒有罐子時，會跳出「重新蒐集飼料罐」，按確定回去答題。上方的「錯題紀錄」隨時可以看，會統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，也可以清空；之後出題時會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
+const HELP_PARENT = '每次開始先選難度和題數：簡單二選一、中等三選一、困難四選一；題數 10、20 或 30 題（預設 10 題），按「確定」開始。畫面中間是一個東西或動作的像素圖和國字，下面是注音選項，選出正確的那一個（電腦也可以按 1～4）。題庫有 500 個一年級常見的詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。答對會有「叮叮叮」的音效、電腦會唸出這個詞；上方有一排空罐，題數幾題就有幾個，第一次就答對的題目，罐子就會裝滿飼料；題目做完時，簡單每答對一題拿 1 罐、中等拿 2 罐、困難拿 3 罐；答錯會有低沉的「嗶嗶」聲，這一題就拿不到罐子，可以再選到對為止。家長不用在旁邊，聽聲音就知道孩子答得對不對。題目做完會到農場地圖（左右有大入口，連著公園、迷宮、外太空、海邊，往同一邊走五張會回到農場；15 種動物分散住在這五張地圖；公園左下有溜滑梯，走到梯子上就會溜下去，跟著的動物一起溜，溜的路不算步數）：動物散在地圖上，點地圖小朋友就會走過去，點動物會走到牠旁邊餵一罐（電腦也可以用方向鍵走路，撞到動物就餵），餵一罐動物就會排在後面跟著你走，可以一直餵下一隻；每種動物各有 2 隻；跟著你的動物走路時頭上會顯示血條，走的步數超過地圖的格子數（24×15＝360 步）就會肚子餓、掉隊，留在原地等你再去餵；點跟著你的動物會顯示牠的血條和還可以走幾步，並問要不要現在餵牠，餵一罐血條就補滿；沒用完的飼料罐和跟著你的動物會留到下次。也可以不餵，直接按「再玩一次」。如果題目全部第一次就答對，農場上下的入口會打開，通到「罐子迷宮」（共 100 個迷宮，每次全對隨機挑兩個），迷宮的路上有罐子可以撿；只有小朋友能進迷宮，動物在外面等，兩個迷宮加起來只能待 30 秒，時間到會自動回到農場；飼料罐用完而且迷宮也沒有罐子時，會跳出「重新蒐集飼料罐」，按確定回去答題。上方的「錯題紀錄」隨時可以看，會統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，也可以清空；之後出題時會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
 function openHelp(){
   SFX.blip();
   $('modal').innerHTML = `<div class="qz-panel">

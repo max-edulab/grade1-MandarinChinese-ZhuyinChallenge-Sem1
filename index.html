@@ -871,13 +871,12 @@ function qzFarm(res){
   clearTimeout(qzTimer);
   const left = FARM_ALL.filter(a => !QZS.pets.includes(a.id)).length;
   qzEl().innerHTML = `<div class="farm">
-    ${res ? `<div class="farm-res">🎉 ${Z('ㄗㄨㄛˋ ㄨㄢˊ ˙ㄌㄜ！', '做完了！')} ${Z('ㄋㄚˊ ㄉㄠˋ', '拿到')} ${canHtml(res.got)}${res.wrong ? `<span class="sm">（${Z('ㄘㄨㄛˋ', '錯')} ${res.wrong} ${Z('ㄘˋ', '次')}）</span>` : ''}</div>` : ''}
+    <div class="farm-tip">👆 ${Z('ㄉㄧㄢˇ ㄉㄧˋ ㄊㄨˊ ㄗㄡˇ ㄌㄨˋ，ㄉㄧㄢˇ ㄉㄨㄥˋ ㄨˋ ㄨㄟˋ ㄊㄚ ㄧ ㄍㄨㄢˋ，ㄊㄚ ㄐㄧㄡˋ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ', '點地圖走路，點動物餵牠一罐，牠就跟著你')}；${Z('ㄉㄧㄢˇ ㄍㄣ ˙ㄓㄜ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ ㄎㄜˇ ㄧˇ ㄅㄨˇ ㄇㄢˇ ㄒㄧㄝˇ', '點跟著的動物可以補滿血')}</div>
     <div class="farm-head"><b>🌾 ${Z('ㄋㄨㄥˊ ㄔㄤˇ', '農場')}</b><span id="farmCans">${canHtml(QZS.cans)}</span></div>
     <div class="farm-say" id="farmSay">${!left ? Z('ㄉㄨㄥˋ ㄨˋ ㄉㄡ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ ˙ㄌㄜ！', '動物都跟著你了！')
       : QZS.cans ? Z('ㄉㄧㄢˇ ㄉㄨㄥˋ ㄨˋ，ㄗㄡˇ ㄍㄨㄛˋ ㄑㄩˋ ㄨㄟˋ ㄊㄚ！', '點動物，走過去餵牠！')
       : Z('ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ ㄩㄥˋ ㄨㄢˊ ˙ㄌㄜ，ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ ˙ㄅㄚ！', '飼料罐用完了，再玩一次吧！')}</div>
     <canvas class="farm-cv" id="farmCv" width="${FW * FT}" height="${FH * FT}" aria-label="農場地圖：點地圖走路，點動物餵牠"></canvas>
-    <div class="farm-tip">👆 ${Z('ㄉㄧㄢˇ ㄉㄧˋ ㄊㄨˊ ㄗㄡˇ ㄌㄨˋ，ㄉㄧㄢˇ ㄉㄨㄥˋ ㄨˋ ㄨㄟˋ ㄊㄚ ㄧ ㄍㄨㄢˋ，ㄊㄚ ㄐㄧㄡˋ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ', '點地圖走路，點動物餵牠一罐，牠就跟著你')}；${Z('ㄉㄧㄢˇ ㄍㄣ ˙ㄓㄜ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ ㄎㄜˇ ㄧˇ ㄅㄨˇ ㄇㄢˇ ㄒㄧㄝˇ', '點跟著的動物可以補滿血')}</div>
     <div class="qz-row"><button class="btn" data-qz="again" data-focus>🔁 ${Z('ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ', '再玩一次')}</button></div>
   </div>`;
   farmStart();

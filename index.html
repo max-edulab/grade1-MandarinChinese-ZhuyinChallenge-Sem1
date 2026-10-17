@@ -1062,7 +1062,9 @@ function goRocket(r){
 }
 function startRide(r){
   const M = FM, c = padCenter(r.pads[r.at]);
-  M.ride = { r, phase:'board', t:0, from:r.at, to:1 - r.at, c, wait:(QZS.pets.length + 1) * 8 + 6 };
+  // 窗戶裡露出誰的臉：小朋友或其中一隻動物，隨機挑
+  const faces = [{ kid:true }, ...QZS.pets.map(id => ({ e:farmBy(id).e }))];
+  M.ride = { r, phase:'board', t:0, from:r.at, to:1 - r.at, c, wait:(QZS.pets.length + 1) * 8 + 6, face:faces[Math.floor(Math.random() * faces.length)] };
   M.me.path = []; M.target = null; M.rocketGo = null; closeAsk();
   SFX.blip(); const say = $('farmSay'); if (say) say.innerHTML = Z('ㄗㄨㄛˋ ㄕㄤˋ ㄏㄨㄛˇ ㄐㄧㄢˋ ˙ㄌㄡ！', '坐上火箭囉！');
 }
@@ -1133,7 +1135,13 @@ function rideHide(x, y){
   return FM.rockets.some(r => { const [px, py] = r.pads[FM.ride && FM.ride.r === r ? FM.ride.from : r.at]; return cx > px * FT + 4 && cx < px * FT + 28 && cy > py * FT + 4 && cy < py * FT + 28; });
 }
 // 畫一座火箭（cx, cy 是火箭中心，往上的方向）
-function drawRocket(g, kind, cx, cy, rot, fire, frame){
+// 火箭窗戶要不要露出臉（小朋友坐進去之後才有）
+function rideFace(r){
+  const R = FM.ride; if (!R || R.r !== r) return null;
+  if (R.phase === 'fly' || (FM.me.px === R.c.x && FM.me.py === R.c.y)) return R.face;
+  return null;
+}
+function drawRocket(g, kind, cx, cy, rot, fire, frame, face){
   const K = ROCKET_KINDS[kind];
   g.save(); g.translate(Math.round(cx), Math.round(cy)); g.rotate(rot); g.scale(1.25, 1.25);
   if (fire){   // 火焰
@@ -1143,8 +1151,17 @@ function drawRocket(g, kind, cx, cy, rot, fire, frame){
   fP(g, -11, 4, INK, 22, 12); fP(g, -10, 5, K.fin, 20, 10);   // 尾翼
   fP(g, -8, -16, INK, 16, 32); fP(g, -7, -15, K.body, 14, 30); fP(g, 3, -15, K.dark, 4, 30);   // 機身
   for (let k = 0; k < 7; k++) fP(g, -7 + k, -16 - k, INK, 14 - k * 2, 1), fP(g, -6 + k, -15 - k, K.nose, 12 - k * 2, 1);   // 鼻子
-  disc(g, 0, -4, 5, 5, d => d > .7 ? INK : d > .4 ? '#c8c8d4' : '#8cc8ff');   // 窗戶
-  fP(g, -2, -6, '#ffffff', 2, 2);
+  if (face){   // 窗戶裡的臉
+    disc(g, 0, -4, 6, 6, d => d > .78 ? INK : d > .62 ? '#c8c8d4' : '#bfe4ff');
+    g.save(); g.beginPath(); g.arc(.5, -3.5, 4.6, 0, Math.PI * 2); g.clip();
+    if (face.kid) g.drawImage(KID, 4, 4, 14, 12, -6, -9, 13, 11);   // 小朋友的頭
+    else g.drawImage(sprite(face.e), 0, 0, 18, 18, -5, -9, 11, 11);
+    g.restore();
+    fP(g, -3, -8, 'rgba(255,255,255,.7)', 2, 1);
+  } else {
+    disc(g, 0, -4, 5, 5, d => d > .7 ? INK : d > .4 ? '#c8c8d4' : '#8cc8ff');   // 窗戶
+    fP(g, -2, -6, '#ffffff', 2, 2);
+  }
   if (kind === 'zigzag'){ fP(g, -1, 7, '#ffd23c', 2, 6); fP(g, -3, 9, '#ffd23c', 6, 2); }
   if (kind === 'loop'){ fP(g, -7, 6, '#ff9a20', 14, 2); }
   if (kind === 'arc'){ fP(g, -7, -11, '#ffffff', 14, 1); }
@@ -1878,13 +1895,13 @@ function drawFarm(){
   if (M.mi === SPACE_MI) M.rockets.forEach(r => {
     if (r.away) return;
     const c = padCenter(r.pads[r.at]);
-    ents.push({ y:c.y + 9, f:() => drawRocket(g, r.kind, c.x + 8, c.y + 2, 0, false, M.frame) });
+    ents.push({ y:c.y + 9, f:() => drawRocket(g, r.kind, c.x + 8, c.y + 2, 0, false, M.frame, rideFace(r)) });
   });
   if (M.ride && M.ride.phase === 'fly'){   // 飛行中的火箭畫在最上面
     const R = M.ride, f = Math.min(1, R.t / RIDE_FRAMES), P = rocketPose(R, f);
     ents.push({ y:1e9, f:() => {
       for (let k = 1; k <= 7; k++){ const o = rocketPose(R, Math.max(0, f - k * .015)); if (R.r.kind === 'zigzag') fP(g, o.x - 1 + (k % 2) * 3, o.y + 14, ['#ffd23c', '#ff8ab8', '#8cc8ff'][k % 3], 2, 2); else disc(g, Math.round(o.x), Math.round(o.y + 16), 2 + (k >> 1), 2 + (k >> 1), () => k < 3 ? '#e8e8f0' : '#9a9ab0'); }
-      drawRocket(g, R.r.kind, P.x, P.y, P.rot, true, M.frame);
+      drawRocket(g, R.r.kind, P.x, P.y, P.rot, true, M.frame, R.face);
     } });
   }
   if (M.mi < WORLD.length) QZS.pets.forEach((id, k) => {

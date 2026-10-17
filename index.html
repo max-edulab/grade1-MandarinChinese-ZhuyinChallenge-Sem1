@@ -189,9 +189,12 @@ button{font:inherit;color:inherit}
 .map-wrap{position:relative;align-self:center;display:flex;align-items:stretch;gap:4px;width:min(100%,calc((100vh - 300px) * 1.6 + 80px),940px)}
 .map-wrap .farm-cv{flex:1;min-width:0;width:auto}
 /* 地圖兩旁的直排牌子：地圖名稱、左右入口通到哪裡（放在地圖外面，不會蓋到能走的地方） */
+.map-top{display:none}
 .map-side{flex:none;position:relative;font-size:clamp(12px,1.6vw,16px);width:calc(1.7em + 10px)}
-.map-side > span{position:absolute;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 0;font-weight:900;border:3px solid var(--ink);pointer-events:none;line-height:1.1}
+.map-side > *{position:absolute;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 0;font-weight:900;border:3px solid var(--ink);pointer-events:none;line-height:1.1}
 .map-side .gate-lab{top:50%;translate:0 -50%;background:var(--paper)}
+.gate-lab{font:inherit;font-weight:900;color:var(--ink);cursor:pointer;pointer-events:auto!important;box-shadow:0 3px 0 var(--ink)}
+.gate-lab:active{transform:translateY(2px);box-shadow:none}
 .map-side .map-name{top:0;color:var(--ink);background:var(--gold)}
 .ct-time{font-family:var(--f-px);font-size:.9em}
 .ct-time.hurry{color:var(--red)}
@@ -240,7 +243,12 @@ button{font:inherit;color:inherit}
   .help-list{font-size:19px}
   .farm-field{grid-template-columns:repeat(3,minmax(0,1fr));padding:8px;gap:6px}
   .map-wrap{width:100%}
-  .map-side .gate-lab{top:auto;bottom:0;translate:none}
+  .map-side{display:none}
+  .map-top{display:flex;justify-content:space-between;align-items:center;gap:6px;width:100%}
+  .farm{width:calc(100% + 12px);margin-inline:-6px}
+  .map-top > *{font-weight:900;font-size:15px;border:3px solid var(--ink);padding:1px 6px;white-space:nowrap}
+  .map-top .gate-lab{background:var(--paper)}
+  .map-top .map-name{background:var(--gold)}
   .animal img{width:48px;height:48px}.animal{font-size:18px}
   .seg{min-width:4.6em;font-size:19px;padding:4px 8px}
   .qz-pick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
@@ -1708,12 +1716,21 @@ function switchMap(dir){
   setTimeout(() => speak('來到' + w.name[0]), 150);
 }
 function mapLabels(){
-  const n = WORLD.length, set = (id, html) => { const el = $(id); if (el) el.innerHTML = html; };
+  // 電腦版放在地圖兩旁（直排），手機版放在地圖上面一排；兩邊都更新
+  const n = WORLD.length, set = (id, html) => { const el = $(id); if (el) el.innerHTML = html; qzEl().querySelectorAll(`[data-lab="${id}"]`).forEach(e => { e.innerHTML = html; }); };
   const zn = w => Z(w.name[1], w.name[0]);
   const prev = WORLD[(FM.mi + n - 1) % n], next = WORLD[(FM.mi + 1) % n], cur = WORLD[FM.mi];
   set('gateL', `◀ ${zn(prev)}`);
   set('gateR', `${zn(next)} ▶`);
   set('mapName', zn(cur));
+}
+// 點「◀ 海邊」「公園 ▶」這些牌子：走到那一邊的大入口，走進去就換到那張地圖
+function goGate(dir){
+  const M = FM, me = M.me; if (!M || me.sliding || me.fly || M.ride || M.act || qzEl().querySelector('.farm-block')) return;
+  audio(); closeAsk();
+  const x = dir < 0 ? 0 : FW - 1, goals = new Set([6, 7, 8].filter(y => mapRows(M.mi)[y][x] === 'E').map(y => x + ',' + y));
+  const path = farmPath(me.x, me.y, goals);
+  if (path && path.length){ me.path = path; M.target = null; M.rocketGo = null; SFX.blip(); } else SFX.no();
 }
 // 飼料罐用完了：一定要按「確定」回去重新答題蒐集
 function showRefill(){
@@ -1966,7 +1983,8 @@ function qzFarm(res){
     <div class="farm-say"><span id="farmSay">${!left ? Z('ㄉㄨㄥˋ ㄨˋ ㄉㄡ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ ˙ㄌㄜ！', '動物都跟著你了！')
       : QZS.cans ? Z('ㄉㄧㄢˇ ㄉㄨㄥˋ ㄨˋ，ㄗㄡˇ ㄍㄨㄛˋ ㄑㄩˋ ㄨㄟˋ ㄊㄚ！', '點動物，走過去餵牠！')
       : Z('ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ ㄩㄥˋ ㄨㄢˊ ˙ㄌㄜ，ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ ˙ㄅㄚ！', '飼料罐用完了，再玩一次吧！')}</span><span id="farmCans">${canHtml(QZS.cans)}</span></div>
-    <div class="map-wrap"><div class="map-side l"><span class="map-name" id="mapName"></span><span class="gate-lab" id="gateL"></span></div><canvas class="farm-cv" id="farmCv" width="${FW * FT}" height="${FH * FT}" aria-label="地圖：點地圖走路，點動物餵牠，走進左右的入口到隔壁的地圖"></canvas><div class="map-side r"><span class="gate-lab" id="gateR"></span></div></div>
+    <div class="map-top"><button class="gate-lab" data-lab="gateL" data-gate="-1"></button><span class="map-name" data-lab="mapName"></span><button class="gate-lab" data-lab="gateR" data-gate="1"></button></div>
+    <div class="map-wrap"><div class="map-side l"><span class="map-name" id="mapName"></span><button class="gate-lab" id="gateL" data-gate="-1"></button></div><canvas class="farm-cv" id="farmCv" width="${FW * FT}" height="${FH * FT}" aria-label="地圖：點地圖走路，點動物餵牠，走進左右的入口到隔壁的地圖"></canvas><div class="map-side r"><button class="gate-lab" id="gateR" data-gate="1"></button></div></div>
     <div class="qz-row"><button class="btn" data-qz="again" data-focus>🔁 ${Z('ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ', '再玩一次')}</button></div>
   </div>`;
   farmStart();
@@ -2003,6 +2021,7 @@ function qzClick(e){
   const c = e.target.closest('[data-count]'); if (c){ QZS.count = +c.dataset.count; qzSave(); SFX.blip(); qzHome(); qzEl().querySelector(`[data-count="${QZS.count}"]`).focus(); return; }
   const pf = e.target.closest('[data-pf]');
   if (pf){ const id = pf.closest('.farm-ask').dataset.id; closeAsk(); if (pf.dataset.pf === 'feed') feedFollower(id); else SFX.blip(); return; }
+  const gt = e.target.closest('[data-gate]'); if (gt){ if (FM) goGate(+gt.dataset.gate); return; }
   const b = e.target.closest('[data-qz]'); if (!b) return;
   if (b.dataset.qz === 'start') qzStart();
   else if (b.dataset.qz === 'again'){ SFX.blip(); qzHome(); }

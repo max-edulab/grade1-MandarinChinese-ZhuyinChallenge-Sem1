@@ -150,6 +150,10 @@ button{font:inherit;color:inherit}
 .seg.on small{color:var(--ink)}
 .seg:active{transform:translateY(4px);box-shadow:none}
 .seg:focus-visible{outline:3px solid var(--brick);outline-offset:2px}
+.qz-cans{flex:none;display:flex;flex-wrap:wrap;justify-content:center;gap:3px;background:rgba(255,255,255,.7);border:3px solid var(--ink);padding:4px 8px}
+.qz-slot{width:30px;height:30px;image-rendering:pixelated;image-rendering:crisp-edges;filter:grayscale(1) brightness(1.6) opacity(.35)}
+.qz-slot.on{filter:none}
+.qz-slot.pop{animation:qzPop .5s steps(4)}
 .qz-can{display:inline-flex;align-items:center;gap:2px;font-family:var(--f-px);font-size:14px;background:var(--paper);border:3px solid var(--ink);padding:1px 8px 1px 2px}
 .qz-can img{width:26px;height:26px;image-rendering:pixelated}
 .qz-can.pop{animation:qzPop .4s steps(4)}
@@ -165,6 +169,8 @@ button{font:inherit;color:inherit}
 .farm-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .farm-head b{font-size:26px;color:var(--white);text-shadow:2px 2px 0 var(--ink)}
 .farm-say{align-self:center;font-weight:900;font-size:20px;background:rgba(255,255,255,.85);border:3px solid var(--ink);padding:2px 12px;text-align:center}
+.farm-cv{align-self:center;width:min(100%,calc((100vh - 320px) * 1.6),760px);max-width:100%;aspect-ratio:16/10;image-rendering:pixelated;image-rendering:crisp-edges;border:4px solid var(--ink);box-shadow:6px 6px 0 rgba(0,0,0,.25);cursor:pointer;touch-action:manipulation}
+.farm-tip{align-self:center;font-weight:700;font-size:16px;background:rgba(255,255,255,.75);border:2px solid var(--ink);padding:1px 10px;text-align:center}
 .farm-field{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;padding:12px;border:4px solid var(--ink);
   background:#8a5a2c repeating-linear-gradient(90deg,transparent 0 46px,#6a4220 46px 50px);box-shadow:inset 0 0 0 6px #b07a40}
 .animal{display:flex;flex-direction:column;align-items:center;gap:2px;background:#9ce07c;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);padding:6px 4px;cursor:pointer;font-weight:900;font-size:22px}
@@ -200,11 +206,13 @@ button{font:inherit;color:inherit}
   .qz-opts.n2 .qz-opt{font-size:32px}
   .qz-opt.s2{font-size:28px}.qz-opts.n2 .qz-opt.s2{font-size:30px}
   .qz-opt.s3{font-size:24px}
+  .qz-slot{width:22px;height:22px}
   .qz-track{height:32px}.qz-steps{left:10px;right:30px}.qz-step{width:6px;height:6px;border-width:1.5px}.qz-step.on{font-size:10px}.qz-me{width:36px;height:36px;bottom:10px}
   .qz-top{flex-wrap:wrap}.qz-stat{flex-direction:row;align-items:center;gap:8px;width:100%;justify-content:space-between}
   .qz-title{font-size:26px}.qz-say{font-size:20px}
   .help-list{font-size:19px}
   .farm-field{grid-template-columns:repeat(3,minmax(0,1fr));padding:8px;gap:6px}
+  .farm-cv{width:100%}
   .animal img{width:48px;height:48px}.animal{font-size:18px}
   .seg{min-width:4.6em;font-size:19px;padding:4px 8px}
   .qz-pick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
@@ -352,7 +360,6 @@ const QZ_WORDS = [
   ['🎁','禮物','ㄌㄧˇ ㄨˋ','ld,tone'], ['🐭','老鼠','ㄌㄠˇ ㄕㄨˇ','ld,zh'], ['🐧','企鵝','ㄑㄧˋ ㄜˊ','tone'], ['🦊','狐狸','ㄏㄨˊ ˙ㄌㄧ','fh,ld']
 ].map(([e, h, z, c]) => ({ e, h, z, cats:c.split(',') }));
 const QZ_CAT = { tone:'聲調', eng:'ㄣ／ㄥ', an:'ㄢ／ㄤ', ld:'ㄌ／ㄉ／ㄋ', fh:'ㄈ／ㄏ', zh:'ㄓㄔㄕ／ㄗㄘㄙ（翹舌）', bp:'ㄅ／ㄆ', dt:'ㄉ／ㄊ', gk:'ㄍ／ㄎ', yu:'ㄧ／ㄩ' };
-const QZ_HP = 5;
 
 // ---------- 做錯的選項：把一個音節改一個地方 ----------
 const TONES = ['', 'ˊ', 'ˇ', 'ˋ'];
@@ -435,11 +442,8 @@ const qzEl = () => $('stage');
 const WALKER = emojiSprite('🧒').toDataURL();   // 前進條上的小朋友
 const PIC_CACHE = {};
 const picUrl = e => PIC_CACHE[e] || (PIC_CACHE[e] = emojiSprite(e).toDataURL());
-// fx：'lost' 扣掉的那顆（剛碎掉）
-const heartsHtml = (hp, fx) => Array.from({ length:QZ_HP }, (_, i) => {
-  const lost = fx === 'lost' && i === hp;
-  return `<span class="qz-heart ${i < hp ? '' : 'off'} ${lost ? 'lost' : ''}">${i < hp ? '❤️' : lost ? '💔' : '🤍'}</span>`;
-}).join('');
+// 上方一排空罐：第一次就答對的題目，罐子就會裝滿（顯示出來）
+const cansRow = (got, total, pop) => Array.from({ length:total }, (_, i) => `<img class="qz-slot ${i < got ? 'on' : ''} ${pop && i === got - 1 ? 'pop' : ''}" src="${picUrl('🥫')}" alt="">`).join('');
 const stepsHtml = (done, total) => Array.from({ length:total }, (_, i) => i < done ? '<i class="qz-step on">★</i>' : '<i class="qz-step"></i>').join('');
 const canHtml = n => `<span class="qz-can"><img src="${picUrl('🥫')}" alt="飼料罐">×<b>${n}</b></span>`;
 const partyHtml = () => `<div class="qz-party"><img class="me" src="${WALKER}" alt="你">${QZS.pets.map((id, k) => `<img src="${picUrl(farmBy(id).e)}" alt="${farmBy(id).h}" style="animation-delay:${(k + 1) * .12}s">`).join('')}</div>`;
@@ -459,7 +463,7 @@ function qzHome(){
       <span class="lab">${Z('ㄊㄧˊ ㄕㄨˋ', '題數')}</span>
       ${COUNTS.map(c => `<button class="seg ${QZS.count === c ? 'on' : ''}" role="radio" aria-checked="${QZS.count === c}" data-count="${c}"><b>${c} ${Z('ㄊㄧˊ', '題')}</b></button>`).join('')}
     </div>
-    <div class="qz-rules"><span>🥫 ${Z('ㄉㄚˊ ㄉㄨㄟˋ ㄋㄚˊ ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ', '答對拿飼料罐')}</span><span>💔 ${Z('ㄉㄚˊ ㄘㄨㄛˋ ㄎㄡˋ ㄞˋ ㄒㄧㄣ', '答錯扣愛心')}</span></div>
+    <div class="qz-rules"><span>🥫 ${Z('ㄉㄚˊ ㄉㄨㄟˋ ㄋㄚˊ ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ', '答對拿飼料罐')}</span><span>❌ ${Z('ㄉㄚˊ ㄘㄨㄛˋ ㄋㄚˊ ㄅㄨˊ ㄉㄠˋ', '答錯拿不到')}</span></div>
     ${QZS.pets.length || QZS.cans ? `<div class="qz-mine">${partyHtml()}${QZS.cans ? canHtml(QZS.cans) : ''}</div>` : ''}
     <div class="qz-row"><button class="btn" data-qz="start" data-focus>${Z('ㄑㄩㄝˋ ㄉㄧㄥˋ', '確定')} ▶</button></div>
   </div>`;
@@ -473,7 +477,7 @@ function qzStart(){
   if (pool.length < total){ QZS.seen = []; pool = QZ_WORDS.slice(); }
   const review = shuffle(missed.map(byH).filter(Boolean)).slice(0, Math.floor(total / 3));
   const list = [...review, ...shuffle(pool.filter(w => !review.includes(w)))].slice(0, total);
-  QZ = { list:shuffle(list), total, i:0, hp:QZ_HP, wrong:0, got:0, missed:[], nOpt:QZS.diff, busy:false };
+  QZ = { list:shuffle(list), total, i:0, wrong:0, got:0, missed:[], nOpt:QZS.diff, busy:false };
   SFX.blip(); qzQuestion();
 }
 function qzQuestion(){
@@ -482,8 +486,9 @@ function qzQuestion(){
   const pct = QZ.i / QZ.total * 100;
   qzEl().innerHTML = `<div class="qz-top">
       <div class="qz-track"><div class="qz-done" style="width:${pct}%"></div><div class="qz-steps">${stepsHtml(QZ.i, QZ.total)}</div><img class="qz-me" src="${WALKER}" alt="" style="left:${pct}%"><span class="qz-flag">🏡</span></div>
-      <div class="qz-stat"><span class="qz-no">${QZ.i + 1} / ${QZ.total}</span>${canHtml(QZ.got)}<span class="qz-hp">${heartsHtml(QZ.hp)}</span></div>
+      <span class="qz-no">${QZ.i + 1} / ${QZ.total}</span>
     </div>
+    <div class="qz-cans" role="img" aria-label="拿到 ${QZ.got} 個飼料罐">${cansRow(QZ.got, QZ.total)}</div>
     <div class="qz-q">
       <div class="qz-card"><img class="qz-pic" src="${picUrl(w.e)}" alt="${esc(w.h)}"><div class="qz-han">${esc(w.h)}</div></div>
       <div class="qz-ask">${Z('ㄋㄚˇ ㄧ ˙ㄍㄜ ㄓㄨˋ ㄧㄣ ㄕˋ ㄉㄨㄟˋ ˙ㄉㄜ？', '哪一個注音是對的？')}</div>
@@ -504,8 +509,7 @@ function qzAnswer(k){
     qzSave();
     $('qzFb').innerHTML = QZ.tried ? `<span class="ok">✅ ${Z('ㄉㄚˊ ㄉㄨㄟˋ ˙ㄌㄜ！', '答對了！')}</span>`
       : `<span class="ok">✅ ${Z('ㄉㄚˊ ㄉㄨㄟˋ ˙ㄌㄜ！', '答對了！')} +🥫</span>`;
-    qzEl().querySelector('.qz-can b').textContent = QZ.got;
-    if (!QZ.tried) qzEl().querySelector('.qz-can').classList.add('pop');
+    if (!QZ.tried) qzEl().querySelector('.qz-cans').innerHTML = cansRow(QZ.got, QZ.total, true);
     const pct = (QZ.i + 1) / QZ.total * 100;
     qzEl().querySelector('.qz-me').style.left = pct + '%'; qzEl().querySelector('.qz-done').style.width = pct + '%';
     qzEl().querySelector('.qz-steps').innerHTML = stepsHtml(QZ.i + 1, QZ.total);
@@ -515,10 +519,8 @@ function qzAnswer(k){
     QZ.tried = true; QZ.wrong++; btn.classList.add('no'); btn.disabled = true; SFX.no();
     if (!QZ.missed.some(m => m.w === w)) QZ.missed.push({ w, pick:o.z });
     logWrong(w, o);
-    QZ.hp--;   // 答錯扣一顆愛心（答對也不會補回來）
-    qzEl().querySelector('.qz-hp').innerHTML = heartsHtml(QZ.hp, 'lost');
-    $('qzFb').innerHTML = `<span class="no">💔 ${Z('ㄎㄡˋ ㄧ ㄎㄜ ㄞˋ ㄒㄧㄣ，ㄗㄞˋ ㄒㄧㄤˇ ㄧ ㄒㄧㄤˇ', '扣一顆愛心，再想一想')}</span>`;
-    if (QZ.hp <= 0){ QZ.busy = true; qzTimer = setTimeout(qzFail, 900); }
+    // 答錯：這一題拿不到飼料罐，可以再選到對為止
+    $('qzFb').innerHTML = `<span class="no">❌ ${Z('ㄗㄞˋ ㄒㄧㄤˇ ㄧ ㄒㄧㄤˇ', '再想一想')}（${Z('ㄓㄜˋ ㄊㄧˊ ㄋㄚˊ ㄅㄨˊ ㄉㄠˋ ㄍㄨㄢˋ ˙ㄗ ˙ㄌㄜ', '這題拿不到罐子了')}）</span>`;
   }
 }
 // 題目做完：拿到的飼料罐放進存檔，去農場餵動物
@@ -528,60 +530,187 @@ function qzDone(){
   SFX.clear();
   qzFarm({ got, wrong, total, missed });
 }
-// 愛心扣光：顯示「再接再厲」，過一下就跳出遊戲回到開始畫面（錯題已經記在錯題紀錄裡）
-function qzFail(){
-  SFX.no(); QZ = null;
-  qzEl().innerHTML = `<div class="qz-panel">
-    <div class="qz-title">💪 ${Z('ㄗㄞˋ ㄐㄧㄝ ㄗㄞˋ ㄌㄧˋ', '再接再厲')}</div>
-    <div class="qz-say">${Z('ㄞˋ ㄒㄧㄣ ㄎㄡˋ ㄍㄨㄤ ˙ㄌㄜ', '愛心扣光了')}</div>
-  </div>`;
-  setTimeout(() => speak('再接再厲'), 500);
-  qzTimer = setTimeout(qzHome, 3000);
+// ---------- 農場地圖：動物散在地圖上，走過去餵飼料罐，吃飽了就跟著你走 ----------
+// # 柵欄　B 穀倉（2×2）　T 樹　~ 池塘　* 花　. 草地
+const FW = 16, FH = 10, FT = 16;
+const FARM_MAP = [
+  '################',
+  '#BB....*....T..#',
+  '#BB.........~~.#',
+  '#....*.......~.#',
+  '#.T.........*..#',
+  '#......*.......#',
+  '#..*.......T...#',
+  '#....T.........#',
+  '#*........*..*.#',
+  '################'];
+const FSOLID = '#BT~';
+const fP = (g, x, y, c, w = 1, h = 1) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
+const fHash = (x, y, k) => { let h = x * 374761393 + y * 668265263 + k * 1442695041; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967295; };
+let FARM_BG = null, FM = null;
+const SPRITES = {};
+const sprite = e => SPRITES[e] || (SPRITES[e] = emojiSprite(e));
+function renderFarmBg(){
+  const c = document.createElement('canvas'); c.width = FW * FT; c.height = FH * FT;
+  const g = c.getContext('2d');
+  for (let y = 0; y < FH; y++) for (let x = 0; x < FW; x++){
+    const ch = FARM_MAP[y][x], ox = x * FT, oy = y * FT;
+    fP(g, ox, oy, '#7cc84c', FT, FT);
+    for (let k = 0; k < 5; k++) fP(g, ox + Math.floor(fHash(x, y, k) * 15), oy + Math.floor(fHash(x, y, k + 9) * 15), '#5cb03c', 1, 2);
+    if (ch === '*'){ const fx = ox + 4 + Math.floor(fHash(x, y, 3) * 7), fy = oy + 4 + Math.floor(fHash(x, y, 4) * 7), col = ['#ffffff', '#ff8ab8', '#ffe040'][Math.floor(fHash(x, y, 5) * 3)];
+      fP(g, fx, fy - 1, col); fP(g, fx - 1, fy, col); fP(g, fx + 1, fy, col); fP(g, fx, fy + 1, col); fP(g, fx, fy, '#ff9a20'); }
+    if (ch === '#'){   // 木頭柵欄
+      fP(g, ox, oy + 5, '#8a5a2c', FT, 3); fP(g, ox, oy + 10, '#8a5a2c', FT, 3); fP(g, ox + 6, oy + 2, '#6a4220', 4, 13); fP(g, ox + 7, oy + 2, '#a8743c', 1, 12);
+    }
+    if (ch === '~'){ fP(g, ox, oy, '#3c8ce0', FT, FT); fP(g, ox + 3, oy + 5, '#8cc8ff', 5, 1); fP(g, ox + 9, oy + 11, '#8cc8ff', 4, 1); }
+    if (ch === 'T'){   // 圓圓的樹
+      fP(g, ox + 7, oy + 10, '#6a4220', 3, 6);
+      for (let yy = -6; yy <= 6; yy++) for (let xx = -7; xx <= 7; xx++){ const d = xx * xx / 49 + yy * yy / 36; if (d <= 1) fP(g, ox + 8 + xx, oy + 7 + yy, d > .75 ? INK : (xx + yy < 0 ? '#5cc83c' : '#3c9c28')); }
+    }
+  }
+  // 紅色穀倉（左上角 2×2）
+  const bx = 1 * FT, by = 1 * FT;
+  fP(g, bx, by + 8, INK, 32, 24); fP(g, bx + 1, by + 9, '#d83c2c', 30, 22);
+  for (let k = 0; k < 10; k++){ fP(g, bx + 15 - k * 1.6 | 0, by + k, INK, 2 + k * 3.2 | 0, 1); if (k) fP(g, bx + 16 - k * 1.6 | 0, by + k, '#a82a1a', k * 3.2 - 1 | 0, 1); }
+  fP(g, bx + 10, by + 18, '#ffffff', 12, 13); fP(g, bx + 11, by + 19, '#8a2414', 10, 12); fP(g, bx + 15, by + 19, '#ffffff', 1, 12);
+  fP(g, bx + 13, by + 11, '#ffffff', 6, 5); fP(g, bx + 14, by + 12, '#8a2414', 4, 3);
+  return c;
 }
-
-// ---------- 農場：點動物餵飼料罐，吃飽了就跟著你走 ----------
+const fWalk = (x, y, skip) => x >= 0 && y >= 0 && x < FW && y < FH && !FSOLID.includes(FARM_MAP[y][x]) && !(FM && FM.animals.some(a => a !== skip && a.x === x && a.y === y));
+function farmStart(){
+  if (!FARM_BG) FARM_BG = renderFarmBg();
+  const me = { x:7, y:8, px:7 * FT, py:8 * FT, path:[], face:1 };
+  // 還沒吃飽的動物散在地圖上（離小朋友遠一點，也不要擠在一起）
+  const free = [];
+  for (let y = 1; y < FH - 1; y++) for (let x = 1; x < FW - 1; x++) if (fWalk(x, y) && Math.abs(x - me.x) + Math.abs(y - me.y) > 3) free.push({ x, y });
+  const animals = [];
+  shuffle(free);
+  FARM.filter(a => !QZS.pets.includes(a.id)).forEach(a => {
+    const spot = free.find(f => !animals.some(o => Math.abs(o.x - f.x) + Math.abs(o.y - f.y) < 2));
+    if (!spot) return;
+    free.splice(free.indexOf(spot), 1);
+    animals.push({ ...a, x:spot.x, y:spot.y, bob:Math.floor(Math.random() * 40), munch:0 });
+  });
+  // 跟著你的動物先排在小朋友左邊
+  const hist = [];
+  for (let k = 120; k > 0; k--) hist.push({ x:Math.max(FT, me.px - k), y:me.py });
+  hist.push({ x:me.px, y:me.py });
+  FM = { me, animals, hist, target:null, frame:0, cv:$('farmCv') };
+  FM.cv.addEventListener('pointerdown', farmTap);
+  requestAnimationFrame(farmLoop);
+}
+function farmPath(sx, sy, goals){
+  const key = (x, y) => x + ',' + y, prev = new Map([[key(sx, sy), null]]), q = [[sx, sy]];
+  while (q.length){
+    const [x, y] = q.shift();
+    if (goals.has(key(x, y))){ const out = []; let k = key(x, y); while (prev.get(k)){ out.unshift(k.split(',').map(Number)); k = prev.get(k); } return out; }
+    [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => { const nx = x + dx, ny = y + dy, nk = key(nx, ny); if (!prev.has(nk) && fWalk(nx, ny)){ prev.set(nk, key(x, y)); q.push([nx, ny]); } });
+  }
+  return null;
+}
+const nextTo = (a, x, y) => Math.abs(a.x - x) + Math.abs(a.y - y) === 1;
+function farmGo(tx, ty){
+  const M = FM, me = M.me, a = M.animals.find(o => o.x === tx && o.y === ty);
+  audio();
+  if (a){
+    if (nextTo(a, me.x, me.y) && !me.path.length){ feedAnimal(a); return; }
+    const goals = new Set([[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [tx + dx, ty + dy]).filter(([x, y]) => fWalk(x, y)).map(p => p.join(',')));
+    const path = farmPath(me.x, me.y, goals);
+    if (path){ me.path = path; M.target = a; } else SFX.no();
+    return;
+  }
+  if (!fWalk(tx, ty)) return;
+  const path = farmPath(me.x, me.y, new Set([tx + ',' + ty]));
+  if (path){ me.path = path; M.target = null; }
+}
+function farmTap(e){
+  const r = FM.cv.getBoundingClientRect();
+  farmGo(Math.floor((e.clientX - r.left) / r.width * FW), Math.floor((e.clientY - r.top) / r.height * FH));
+}
+function farmKey(dx, dy){
+  const me = FM.me; if (me.path.length) return;
+  if (dx) me.face = dx;
+  const nx = me.x + dx, ny = me.y + dy, a = FM.animals.find(o => o.x === nx && o.y === ny);
+  if (a){ feedAnimal(a); return; }   // 撞到動物就餵牠
+  if (fWalk(nx, ny)){ me.path = [[nx, ny]]; FM.target = null; }
+}
+function farmLoop(){
+  const M = FM;
+  if (!M || !document.body.contains(M.cv)){ FM = null; return; }
+  M.frame++;
+  const me = M.me;
+  if (me.path.length){
+    const [tx, ty] = me.path[0], gx = tx * FT, gy = ty * FT;
+    if (gx !== me.px) me.face = gx > me.px ? 1 : -1;
+    me.px += Math.sign(gx - me.px) * Math.min(2, Math.abs(gx - me.px)); me.py += Math.sign(gy - me.py) * Math.min(2, Math.abs(gy - me.py));
+    M.hist.push({ x:me.px, y:me.py }); if (M.hist.length > 600) M.hist.shift();
+    if (me.px === gx && me.py === gy){
+      me.x = tx; me.y = ty; me.path.shift();
+      if (!me.path.length && M.target){ const a = M.target; M.target = null; if (M.animals.includes(a) && nextTo(a, me.x, me.y)) feedAnimal(a); }
+    }
+  }
+  drawFarm();
+  requestAnimationFrame(farmLoop);
+}
+function drawFarm(){
+  const M = FM, g = M.cv.getContext('2d');
+  g.imageSmoothingEnabled = false;
+  g.drawImage(FARM_BG, 0, 0);
+  const ents = [];
+  M.animals.forEach(a => ents.push({ y:a.y * FT, f:() => {
+    const bob = a.munch > 0 ? (a.munch-- % 8 < 4 ? -2 : 0) : (Math.floor((M.frame + a.bob) / 30) % 2 ? -1 : 0);
+    fP(g, a.x * FT + 2, a.y * FT + 14, 'rgba(0,0,0,.2)', 12, 2);
+    g.drawImage(sprite(a.e), a.x * FT - 1, a.y * FT - 3 + bob);
+    const n = QZS.fed[a.id] || 0;   // 頭上三格：吃了幾罐
+    for (let i = 0; i < FEED_NEED; i++){ fP(g, a.x * FT + 2 + i * 4, a.y * FT - 7, INK, 4, 4); fP(g, a.x * FT + 3 + i * 4, a.y * FT - 6, i < n ? '#fcbc3c' : '#ffffff', 2, 2); }
+  } }));
+  // 跟著你的動物：排在小朋友走過的路上
+  QZS.pets.forEach((id, k) => {
+    const h = M.hist[Math.max(0, M.hist.length - 1 - (k + 1) * 12)];
+    ents.push({ y:h.y - .5, f:() => { const bob = Math.floor((M.frame + k * 7) / 14) % 2 ? -1 : 0; fP(g, h.x + 2, h.y + 14, 'rgba(0,0,0,.2)', 12, 2); g.drawImage(sprite(farmBy(id).e), h.x - 1, h.y - 3 + bob); } });
+  });
+  ents.push({ y:M.me.py + .5, f:() => {
+    const walk = M.me.path.length ? (Math.floor(M.frame / 6) % 2 ? -2 : 0) : 0;
+    fP(g, M.me.px + 2, M.me.py + 14, 'rgba(0,0,0,.25)', 12, 2);
+    g.save(); if (M.me.face < 0){ g.translate(M.me.px * 2 + 16, 0); g.scale(-1, 1); }
+    g.drawImage(sprite('🧒'), M.me.px - 1, M.me.py - 4 + walk); g.restore();
+  } });
+  ents.sort((a, b) => a.y - b.y).forEach(e => e.f());
+}
+function feedAnimal(a){
+  const say = $('farmSay'); if (!say) return;
+  if (QZS.cans <= 0){ SFX.no(); say.innerHTML = Z('ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ ㄩㄥˋ ㄨㄢˊ ˙ㄌㄜ，ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ ˙ㄅㄚ！', '飼料罐用完了，再玩一次吧！'); return; }
+  QZS.cans--; QZS.fed[a.id] = (QZS.fed[a.id] || 0) + 1; a.munch = 32;
+  if (QZS.fed[a.id] >= FEED_NEED){
+    // 吃飽了：離開原地，排到隊伍最後面跟著你走
+    QZS.pets.push(a.id); delete QZS.fed[a.id];
+    FM.animals = FM.animals.filter(o => o !== a);
+    SFX.clear();
+    say.innerHTML = `${Z(a.z, a.h)}${Z('ㄔ ㄅㄠˇ ˙ㄌㄜ，ㄍㄣ ˙ㄓㄜ ㄋㄧˇ ㄗㄡˇ！', '吃飽了，跟著你走！')}`;
+    setTimeout(() => speak(a.h + '吃飽了'), 300);
+    if (!FM.animals.length) setTimeout(() => { const s2 = $('farmSay'); if (s2) s2.innerHTML = Z('ㄉㄨㄥˋ ㄨˋ ㄉㄡ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ ˙ㄌㄜ！', '動物都跟著你了！'); }, 2000);
+  } else {
+    SFX.ok();
+    say.innerHTML = `${Z(a.z, a.h)}：${Z('ㄏㄠˇ ㄏㄠˇ ㄔ！', '好好吃！')}${Z('ㄏㄞˊ ㄧㄠˋ', '還要')} ${FEED_NEED - QZS.fed[a.id]} ${Z('ㄍㄨㄢˋ', '罐')}`;
+  }
+  qzSave();
+  $('farmCans').innerHTML = canHtml(QZS.cans);
+}
 function qzFarm(res){
   clearTimeout(qzTimer);
-  const left = FARM.filter(a => !QZS.pets.includes(a.id));
+  const left = FARM.filter(a => !QZS.pets.includes(a.id)).length;
   qzEl().innerHTML = `<div class="farm">
     ${res ? `<div class="farm-res">🎉 ${Z('ㄗㄨㄛˋ ㄨㄢˊ ˙ㄌㄜ！', '做完了！')} ${Z('ㄋㄚˊ ㄉㄠˋ', '拿到')} ${canHtml(res.got)}${res.wrong ? `<span class="sm">（${Z('ㄘㄨㄛˋ', '錯')} ${res.wrong} ${Z('ㄘˋ', '次')}）</span>` : ''}</div>` : ''}
     <div class="farm-head"><b>🌾 ${Z('ㄋㄨㄥˊ ㄔㄤˇ', '農場')}</b><span id="farmCans">${canHtml(QZS.cans)}</span></div>
-    <div class="farm-say" id="farmSay">${left.length ? (QZS.cans ? Z('ㄉㄧㄢˇ ㄒㄧˇ ㄏㄨㄢ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ，ㄨㄟˋ ㄊㄚ ㄔ ㄙˋ ㄌㄧㄠˋ！', '點喜歡的動物，餵牠吃飼料！') : Z('ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ ㄩㄥˋ ㄨㄢˊ ˙ㄌㄜ，ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ ˙ㄅㄚ！', '飼料罐用完了，再玩一次吧！'))
-      : Z('ㄉㄨㄥˋ ㄨˋ ㄉㄡ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ ˙ㄌㄜ！', '動物都跟著你了！')}</div>
-    <div class="farm-field">${left.map(a => { const n = QZS.fed[a.id] || 0;
-      return `<button class="animal" data-feed="${a.id}" aria-label="${a.h}"><img src="${picUrl(a.e)}" alt=""><span class="nm">${Z(a.z, a.h)}</span>
-        <span class="pips">${Array.from({ length:FEED_NEED }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</span></button>`; }).join('')}</div>
-    <div class="farm-party"><span class="lab">${Z('ㄍㄣ ˙ㄓㄜ ㄋㄧˇ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ', '跟著你的動物')}</span>${partyHtml()}</div>
+    <div class="farm-say" id="farmSay">${!left ? Z('ㄉㄨㄥˋ ㄨˋ ㄉㄡ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ ˙ㄌㄜ！', '動物都跟著你了！')
+      : QZS.cans ? Z('ㄉㄧㄢˇ ㄉㄨㄥˋ ㄨˋ，ㄗㄡˇ ㄍㄨㄛˋ ㄑㄩˋ ㄨㄟˋ ㄊㄚ！', '點動物，走過去餵牠！')
+      : Z('ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ ㄩㄥˋ ㄨㄢˊ ˙ㄌㄜ，ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ ˙ㄅㄚ！', '飼料罐用完了，再玩一次吧！')}</div>
+    <canvas class="farm-cv" id="farmCv" width="${FW * FT}" height="${FH * FT}" aria-label="農場地圖：點地圖走路，點動物餵牠"></canvas>
+    <div class="farm-tip">👆 ${Z('ㄉㄧㄢˇ ㄉㄧˋ ㄊㄨˊ ㄗㄡˇ ㄌㄨˋ，ㄉㄧㄢˇ ㄉㄨㄥˋ ㄨˋ ㄨㄟˋ ㄊㄚ', '點地圖走路，點動物餵牠')}　🥫×${FEED_NEED} ${Z('ㄐㄧㄡˋ ㄔ ㄅㄠˇ', '就吃飽')}</div>
     <div class="qz-row"><button class="btn" data-qz="again" data-focus>🔁 ${Z('ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ', '再玩一次')}</button></div>
   </div>`;
+  farmStart();
   focusFirst();
-}
-function qzFeed(id){
-  const a = farmBy(id), say = $('farmSay');
-  if (!a || QZS.pets.includes(id)) return;
-  if (QZS.cans <= 0){ SFX.no(); say.innerHTML = Z('ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ ㄩㄥˋ ㄨㄢˊ ˙ㄌㄜ，ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ ˙ㄅㄚ！', '飼料罐用完了，再玩一次吧！'); return; }
-  QZS.cans--; QZS.fed[id] = (QZS.fed[id] || 0) + 1;
-  const card = qzEl().querySelector(`[data-feed="${id}"]`);
-  if (QZS.fed[id] >= FEED_NEED){
-    // 吃飽了：跟著你走
-    QZS.pets.push(id); delete QZS.fed[id]; qzSave(); SFX.clear();
-    say.innerHTML = `${esc(a.e)} ${Z(a.z, a.h)}${Z('ㄔ ㄅㄠˇ ˙ㄌㄜ，ㄍㄣ ˙ㄓㄜ ㄋㄧˇ ㄗㄡˇ！', '吃飽了，跟著你走！')}`;
-    setTimeout(() => speak(a.h + '吃飽了'), 300);
-    card.classList.add('full');
-    setTimeout(() => { if (qzEl().querySelector('.farm')) qzFarmRefresh(); }, 900);
-  } else {
-    qzSave(); SFX.ok();
-    card.querySelectorAll('.pips i')[QZS.fed[id] - 1].classList.add('on');
-    card.classList.remove('munch'); void card.offsetWidth; card.classList.add('munch');
-    say.innerHTML = `${esc(a.e)} ${Z('ㄏㄠˇ ㄏㄠˇ ㄔ！', '好好吃！')} ${Z('ㄏㄞˊ ㄧㄠˋ', '還要')} ${FEED_NEED - QZS.fed[id]} ${Z('ㄍㄨㄢˋ', '罐')}`;
-  }
-  $('farmCans').innerHTML = canHtml(QZS.cans);
-}
-// 吃飽的動物離開農場，加進跟著你的隊伍（保留上方的提示文字）
-function qzFarmRefresh(){
-  const say = $('farmSay').innerHTML;
-  qzFarm(null);
-  $('farmSay').innerHTML = say;
 }
 
 // ---------- 錯題紀錄（給家長看）：開在視窗裡，玩到一半也可以看、可以清空 ----------
@@ -610,7 +739,6 @@ function openLog(){
 }
 function qzClick(e){
   const o = e.target.closest('[data-opt]'); if (o){ qzAnswer(+o.dataset.opt); return; }
-  const f = e.target.closest('[data-feed]'); if (f){ qzFeed(f.dataset.feed); return; }
   const d = e.target.closest('[data-diff]'); if (d){ QZS.diff = +d.dataset.diff; qzSave(); SFX.blip(); qzHome(); qzEl().querySelector(`[data-diff="${QZS.diff}"]`).focus(); return; }
   const c = e.target.closest('[data-count]'); if (c){ QZS.count = +c.dataset.count; qzSave(); SFX.blip(); qzHome(); qzEl().querySelector(`[data-count="${QZS.count}"]`).focus(); return; }
   const b = e.target.closest('[data-qz]'); if (!b) return;
@@ -623,10 +751,10 @@ const HELP_KID = [
   ['⚙️', 'ㄒㄩㄢˇ ㄋㄢˊ ㄉㄨˋ ㄏㄜˊ ㄊㄧˊ ㄕㄨˋ', '選難度和題數'],
   ['🖼️', 'ㄎㄢˋ ㄊㄨˊ ㄏㄜˊ ㄗˋ，ㄉㄧㄢˇ ㄉㄨㄟˋ ˙ㄉㄜ ㄓㄨˋ ㄧㄣ', '看圖和字，點對的注音'],
   ['🥫', 'ㄉㄚˊ ㄉㄨㄟˋ ㄋㄚˊ ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ', '答對拿飼料罐'],
-  ['💔', 'ㄉㄚˊ ㄘㄨㄛˋ ㄎㄡˋ ㄧ ㄎㄜ ㄞˋ ㄒㄧㄣ', '答錯扣一顆愛心'],
+  ['❌', 'ㄉㄚˊ ㄘㄨㄛˋ ㄐㄧㄡˋ ㄋㄚˊ ㄅㄨˊ ㄉㄠˋ', '答錯就拿不到'],
   ['🐷', 'ㄗㄞˋ ㄋㄨㄥˊ ㄔㄤˇ ㄨㄟˋ ㄉㄨㄥˋ ㄨˋ', '在農場餵動物'],
   ['🐾', 'ㄔ ㄅㄠˇ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ ㄏㄨㄟˋ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ', '吃飽的動物會跟著你']];
-const HELP_PARENT = '每次開始先選難度和題數：簡單二選一、中等三選一、困難四選一；題數 10、20 或 30 題（預設 10 題），按「確定」開始。畫面中間是一個東西或動作的像素圖和國字，下面是注音選項，選出正確的那一個（電腦也可以按 1～4）。題庫有 108 個一年級常用詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。答對會有「叮叮叮」的音效、電腦會唸出這個詞；第一次就答對可以拿到一個飼料罐。答錯會有低沉的「嗶嗶」聲並扣一顆愛心，可以再選到對為止，5 顆愛心扣光會顯示「再接再厲」並回到開始畫面。家長不用在旁邊，聽聲音就知道孩子答得對不對。題目做完會到農場，點喜歡的動物就餵一罐，餵滿 3 罐動物吃飽了就會跟著你走，可以一直餵下一隻；沒用完的飼料罐和跟著你的動物會留到下次。也可以不餵，直接按「再玩一次」。上方的「錯題紀錄」隨時可以看，會統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，也可以清空；之後出題時會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
+const HELP_PARENT = '每次開始先選難度和題數：簡單二選一、中等三選一、困難四選一；題數 10、20 或 30 題（預設 10 題），按「確定」開始。畫面中間是一個東西或動作的像素圖和國字，下面是注音選項，選出正確的那一個（電腦也可以按 1～4）。題庫有 108 個一年級常用詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。答對會有「叮叮叮」的音效、電腦會唸出這個詞；上方有一排空罐，題數幾題就有幾個，第一次就答對的題目，罐子就會裝滿飼料；答錯會有低沉的「嗶嗶」聲，這一題就拿不到罐子，可以再選到對為止。家長不用在旁邊，聽聲音就知道孩子答得對不對。題目做完會到農場地圖：動物散在地圖上，點地圖小朋友就會走過去，點動物會走到牠旁邊餵一罐（電腦也可以用方向鍵走路，撞到動物就餵），餵滿 3 罐動物吃飽了就會排在後面跟著你走，可以一直餵下一隻；沒用完的飼料罐和跟著你的動物會留到下次。也可以不餵，直接按「再玩一次」。上方的「錯題紀錄」隨時可以看，會統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，也可以清空；之後出題時會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
 function openHelp(){
   SFX.blip();
   $('modal').innerHTML = `<div class="qz-panel">
@@ -656,7 +784,9 @@ if (!canSpeak) $('btnVoice').hidden = true;
 $('stage').addEventListener('click', e => { audio(); qzClick(e); });
 addEventListener('keydown', e => {
   if (!$('modal').hidden){ if (e.key === 'Escape') closeHelp(); return; }
-  if (QZ && /^[1-4]$/.test(e.key)){ e.preventDefault(); qzAnswer(+e.key - 1); }
+  if (QZ && /^[1-4]$/.test(e.key)){ e.preventDefault(); qzAnswer(+e.key - 1); return; }
+  const dir = { ArrowUp:[0, -1], ArrowDown:[0, 1], ArrowLeft:[-1, 0], ArrowRight:[1, 0] }[e.key];
+  if (FM && dir){ e.preventDefault(); farmKey(dir[0], dir[1]); }
 });
 $('logoText').innerHTML = Z('ㄓㄨˋ ㄧㄣ ㄉㄚˋ ㄊㄧㄠˇ ㄓㄢˋ', '注音大挑戰');
 qzHome();

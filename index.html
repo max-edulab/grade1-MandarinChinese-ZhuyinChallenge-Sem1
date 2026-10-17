@@ -73,7 +73,7 @@ button{font:inherit;color:inherit}
 .qz-steps{position:absolute;left:14px;right:40px;top:50%;translate:0 -50%;display:flex;justify-content:space-between;align-items:center}
 .qz-step{width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid #c8a0b8}
 .qz-step.on{width:auto;height:auto;border:0;background:none;font-size:13px;line-height:1;color:#f0a000;text-shadow:1px 1px 0 var(--ink),-1px -1px 0 var(--ink),1px -1px 0 var(--ink),-1px 1px 0 var(--ink)}
-.qz-me{position:absolute;bottom:14px;width:44px;height:44px;max-width:none;translate:-50% 0;image-rendering:pixelated;image-rendering:crisp-edges;transition:left .5s steps(5);animation:qzHop .8s steps(2) infinite}
+.qz-me{position:absolute;bottom:14px;width:40px;height:46px;max-width:none;translate:-50% 0;image-rendering:pixelated;image-rendering:crisp-edges;transition:left .5s steps(5);animation:qzHop .8s steps(2) infinite}
 .qz-flag{position:absolute;right:-6px;top:50%;translate:0 -58%;font-size:30px;filter:drop-shadow(2px 2px 0 rgba(0,0,0,.25))}
 @keyframes qzHop{50%{transform:translateY(-5px)}}
 /* 愛心：扣掉的那顆會碎掉、抖一抖；補回來的那顆會跳一下 */
@@ -91,8 +91,8 @@ button{font:inherit;color:inherit}
 .qz-pic{width:clamp(80px,16vh,140px);height:clamp(80px,16vh,140px);image-rendering:pixelated;image-rendering:crisp-edges}
 .qz-han{font-size:clamp(38px,8vh,68px);font-weight:900;letter-spacing:.06em;color:var(--ink);white-space:nowrap}
 .qz-ask{font-weight:900;font-size:20px;background:rgba(255,255,255,.8);border:3px solid var(--ink);padding:2px 12px}
-.qz-opts{flex:none;display:grid;gap:12px;grid-template-columns:repeat(var(--n,2),minmax(0,1fr))}
-.qz-opts.n2{--n:2}.qz-opts.n3{--n:3}
+/* 答案框：固定大小（放得下三個字的注音），置中排列，換題目不會跳動 */
+.qz-opts{flex:none;display:flex;justify-content:center;gap:18px}
 .qz-opt{position:relative;display:flex;align-items:center;justify-content:center;min-height:clamp(80px,16vh,130px);background:var(--white);border:4px solid var(--ink);box-shadow:0 5px 0 var(--ink);cursor:pointer;color:var(--ink);font-weight:900;font-size:clamp(34px,7vh,60px);padding:6px;white-space:nowrap}
 @media (hover:hover){.qz-opt:hover:not(:disabled){background:#fff3b0}}
 .qz-opt:active:not(:disabled){transform:translateY(5px);box-shadow:none}
@@ -100,11 +100,9 @@ button{font:inherit;color:inherit}
 .qz-opt.no{background:var(--no-bg);opacity:.75;animation:qzShake .3s steps(3)}
 .qz-opt:disabled{cursor:default}
 /* 注音一個音節一行，上下排列 */
-.qz-zy{display:flex;flex-direction:column;align-items:center;gap:.32em}
+.qz-zy{display:flex;flex-direction:column;align-items:center;gap:.24em}
 .qz-zy .sy{margin:0;padding-right:.36em}
-.qz-opt{padding:10px 6px}
-.qz-opt.s2{font-size:clamp(32px,5.6vh,48px)}
-.qz-opt.s3{font-size:clamp(28px,4.6vh,40px)}
+.qz-opt{flex:0 1 160px;min-width:0;width:160px;height:232px;min-height:0;padding:8px 4px;font-size:34px}
 .qz-k{position:absolute;left:6px;top:4px;font-family:var(--f-px);font-size:10px;color:#9a9ab0}
 @keyframes qzShake{0%,100%{translate:0}33%{translate:-6px}66%{translate:6px}}
 .qz-fb{flex:none;min-height:32px;text-align:center;font-weight:900;font-size:22px}
@@ -160,8 +158,9 @@ button{font:inherit;color:inherit}
 @keyframes qzPop{50%{transform:scale(1.35)}}
 .qz-mine{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
 .qz-party{display:flex;align-items:flex-end;gap:2px;flex-wrap:wrap;justify-content:center}
-.qz-party img{width:40px;height:40px;image-rendering:pixelated;animation:qzHop .8s steps(2) infinite}
-.qz-party img.me{width:48px;height:48px}
+.qz-party img{height:40px;width:auto;image-rendering:pixelated;animation:qzHop .8s steps(2) infinite}
+.qz-party img.pet{width:48px;height:40px}
+.qz-party img.me{width:44px;height:50px}
 /* 農場 */
 .farm{margin:auto;width:min(860px,100%);display:flex;flex-direction:column;gap:10px}
 .farm-res{align-self:center;display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:center;font-weight:900;font-size:22px;background:var(--paper);border:4px solid var(--ink);padding:4px 14px}
@@ -202,12 +201,9 @@ button{font:inherit;color:inherit}
   .qz-card{padding:8px 14px;gap:12px}
   .qz-han{font-size:36px}.qz-pic{width:84px;height:84px}
   .qz-opts{gap:8px}
-  .qz-opt{font-size:26px;min-height:84px;padding:4px 2px}
-  .qz-opts.n2 .qz-opt{font-size:32px}
-  .qz-opt.s2{font-size:28px}.qz-opts.n2 .qz-opt.s2{font-size:30px}
-  .qz-opt.s3{font-size:24px}
+  .qz-opt{flex:0 1 96px;width:96px;height:172px;padding:4px 2px;font-size:25px}
   .qz-slot{width:22px;height:22px}
-  .qz-track{height:32px}.qz-steps{left:10px;right:30px}.qz-step{width:6px;height:6px;border-width:1.5px}.qz-step.on{font-size:10px}.qz-me{width:36px;height:36px;bottom:10px}
+  .qz-track{height:32px}.qz-steps{left:10px;right:30px}.qz-step{width:6px;height:6px;border-width:1.5px}.qz-step.on{font-size:10px}.qz-me{width:30px;height:34px;bottom:10px}
   .qz-top{flex-wrap:wrap}.qz-stat{flex-direction:row;align-items:center;gap:8px;width:100%;justify-content:space-between}
   .qz-title{font-size:26px}.qz-say{font-size:20px}
   .help-list{font-size:19px}
@@ -428,7 +424,7 @@ const DIFFS = [
   { n:4, z:'ㄎㄨㄣˋ ㄋㄢˊ', h:'困難', tip:['ㄙˋ ㄒㄩㄢˇ ㄧ', '四選一'] }];
 const COUNTS = [10, 20, 30];
 // ---------- 農場的動物：餵三罐就吃飽，吃飽了就跟著你走 ----------
-const FEED_NEED = 3;
+const FEED_NEED = 1;   // 餵一罐就跟著你走
 const FARM = [
   { id:'hen', e:'🐔', z:'ㄇㄨˇ ㄐㄧ', h:'母雞' }, { id:'pig', e:'🐷', z:'ㄒㄧㄠˇ ㄓㄨ', h:'小豬' }, { id:'cow', e:'🐮', z:'ㄖㄨˇ ㄋㄧㄡˊ', h:'乳牛' },
   { id:'sheep', e:'🐑', z:'ㄇㄧㄢˊ ㄧㄤˊ', h:'綿羊' }, { id:'rabbit', e:'🐰', z:'ㄊㄨˋ ˙ㄗ', h:'兔子' }, { id:'horse', e:'🐴', z:'ㄒㄧㄠˇ ㄇㄚˇ', h:'小馬' },
@@ -436,17 +432,128 @@ const FARM = [
   { id:'cat', e:'🐱', z:'ㄒㄧㄠˇ ㄇㄠ', h:'小貓' }];
 const farmBy = id => FARM.find(a => a.id === id);
 
+// ---------- 有身體的像素人和動物（跟 123冒險島 一樣的畫法） ----------
+const KID_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABYAAAAZCAYAAAA14t7uAAABg0lEQVR4AeyRMUsDQRCFR0HSGGIlQkDEBEwhmFQWWlrYWPkDrGy0slHwT1hY2AmCYKVgYX5BLGxEUTGigTQHwcJciHokjfKOzDB3t3uXCFq58Ng3M2+/u9sbpl9a/2C52L+/imx27itO8moWE3ljhmUyKYoT58iyAmCEGYZ8Oj1GWuixOIcz3NO7gBFAWA/bbZe09CzJCzgpOOi8b/D14QZpJT0oEcywMAh9z3sPt6UOgHUQByFO5lb32BL7x5Nt6YWNgB3ndqjbHaHy7rKvcHDQWsBJB2unWxLRXpohEwFP5KdDkZ+VATCuA/fXLxxZnDE9OgDmwE21QtCbe0ep+bWAji/OiMV5024E6+DV0TpBT6WSv+tZnLeC72uvVL58JuyFqReqrEz6Pg6mZ0ZwsbBIs7lxUbWeF0+9tTRT7DnzFgHjZ+CnbO5/kkkH5VGCFnbOCVkzligCtgVbLcc2Mvat4GazTqxG44E8z5UafSNNNY1gfGKn80Es1BDX2FErTsR+AwAA//9nIRhmAAAABklEQVQDABMAw4tuc006AAAAAElFTkSuQmCC';   // 小偵探（22×25，臉朝右）
+const KID = new Image(); KID.src = KID_URL;
+const ANIMAL_CACHE = {};
+function animalCanvas(id){
+  if (ANIMAL_CACHE[id]) return ANIMAL_CACHE[id];
+  const W2 = 18, H2 = 15, c = document.createElement('canvas'); c.width = W2; c.height = H2;
+  const g = c.getContext('2d');
+  const R = (x, y, w, h, col) => { g.fillStyle = col; g.fillRect(x + 1, y + 1, w, h); };
+  const ink = '#1b1b2f', pink = '#ff7a8a';
+  if (id === 'cat'){
+    const o = '#f0a040', oS = '#c87a28', w = '#fff4e0';
+    R(14, 1, 1, 6, o); R(15, 0, 1, 2, o);
+    R(6, 6, 8, 4, o); R(8, 6, 1, 3, oS); R(11, 6, 1, 3, oS); R(6, 9, 8, 1, oS);
+    R(6, 10, 2, 2, o); R(12, 10, 2, 2, oS); R(6, 11, 2, 1, w); R(12, 11, 2, 1, w);
+    R(1, 2, 7, 5, o); R(1, 0, 2, 2, o); R(6, 0, 2, 2, o); R(2, 1, 1, 1, pink); R(6, 1, 1, 1, pink);
+    R(3, 2, 1, 1, oS); R(5, 2, 1, 1, oS);
+    R(2, 5, 4, 2, w); R(3, 5, 2, 1, pink); R(2, 3, 1, 1, ink); R(5, 3, 1, 1, ink);
+    R(4, 8, 3, 2, w);
+  } else if (id === 'rabbit'){
+    const w = '#f4f4f8', wS = '#c8c8d8';
+    R(2, 0, 2, 4, w); R(5, 0, 2, 4, w); R(3, 1, 1, 2, '#ffb0c0'); R(6, 1, 1, 2, '#ffb0c0');
+    R(1, 4, 7, 5, w); R(2, 6, 1, 1, ink); R(5, 6, 1, 1, ink); R(3, 7, 2, 1, pink);
+    R(6, 7, 7, 4, w); R(6, 10, 7, 1, wS); R(13, 7, 2, 2, w);
+    R(6, 11, 2, 1, wS); R(11, 11, 2, 1, wS);
+  } else if (id === 'pig'){
+    const pk = '#ffb0c8', pS = '#e888a8';
+    R(15, 5, 1, 2, pS); R(14, 4, 1, 1, pS);
+    R(6, 5, 9, 5, pk); R(6, 9, 9, 1, pS);
+    R(6, 10, 2, 2, pk); R(12, 10, 2, 2, pS);
+    R(1, 3, 6, 6, pk); R(1, 2, 2, 1, pS); R(5, 2, 2, 1, pS);
+    R(0, 5, 3, 3, '#ff8aa8'); R(0, 6, 1, 1, ink); R(2, 6, 1, 1, ink);
+    R(2, 4, 1, 1, ink); R(5, 4, 1, 1, ink);
+  } else if (id === 'chick'){
+    const y = '#ffd23c', yS = '#e8a820', or = '#ff8c1a';
+    R(8, 1, 1, 2, y); R(9, 2, 1, 1, y);
+    R(5, 3, 7, 8, y); R(4, 4, 9, 6, y); R(4, 9, 9, 1, yS);
+    R(9, 6, 3, 2, yS); R(6, 5, 1, 1, ink); R(2, 6, 2, 1, or);
+    R(7, 11, 1, 2, or); R(10, 11, 1, 2, or); R(6, 12, 2, 1, or); R(9, 12, 2, 1, or);
+  } else if (id === 'dino'){   // 小恐龍：綠色、背上黃色尖刺
+    const gr = '#4cb04c', gS = '#2c8c3c';
+    R(12, 6, 4, 2, gr); R(15, 5, 2, 1, gr);
+    R(5, 5, 7, 5, gr); R(6, 7, 4, 3, '#c8ec8c');
+    R(6, 10, 2, 3, gS); R(10, 10, 2, 3, gS);
+    R(1, 1, 6, 4, gr); R(1, 4, 5, 2, gr); R(3, 2, 1, 1, ink); R(2, 5, 1, 1, '#ffffff'); R(4, 5, 1, 1, '#ffffff');
+    R(5, 7, 1, 1, gS);
+    R(7, 4, 1, 1, '#ffd23c'); R(9, 4, 1, 1, '#ffd23c'); R(11, 5, 1, 1, '#ffd23c');
+  } else if (id === 'duck'){   // 鴨子：白色、橘色嘴巴和腳
+    const w = '#ffffff', wS = '#d0d0e0', or = '#ff9a20';
+    R(5, 6, 9, 5, w); R(4, 7, 11, 3, w); R(14, 5, 2, 2, w); R(5, 10, 9, 1, wS); R(8, 7, 5, 2, wS);
+    R(2, 1, 5, 5, w); R(4, 5, 3, 2, w); R(0, 3, 3, 2, or); R(3, 2, 1, 1, ink);
+    R(7, 11, 2, 2, or); R(11, 11, 2, 2, or);
+  } else if (id === 'guinea'){   // 天竺鼠：咖啡色加白色，圓滾滾
+    const b = '#c8864a', bS = '#9a6030', cr = '#fff0d8';
+    R(5, 4, 10, 1, b); R(4, 5, 12, 6, b); R(5, 11, 10, 1, bS); R(9, 5, 4, 6, cr);
+    R(1, 4, 6, 6, b); R(3, 3, 2, 1, '#e8a0a0'); R(2, 6, 1, 1, ink); R(0, 7, 1, 1, pink); R(1, 8, 3, 1, cr);
+    R(4, 12, 2, 1, bS); R(13, 12, 2, 1, bS);
+  } else if (id === 'bear'){   // 熊熊：咖啡色、圓耳朵、淺色鼻子
+    const br = '#a8683a', bS = '#7a4a24', mz = '#e8c090';
+    R(1, 0, 3, 3, br); R(6, 0, 3, 3, br); R(2, 1, 1, 1, bS); R(7, 1, 1, 1, bS);
+    R(1, 2, 8, 7, br); R(1, 5, 4, 3, mz); R(1, 5, 2, 1, ink); R(3, 4, 1, 1, ink); R(6, 4, 1, 1, ink);
+    R(8, 5, 8, 6, br); R(8, 10, 8, 1, bS); R(10, 7, 4, 3, mz);
+    R(8, 11, 3, 2, br); R(13, 11, 3, 2, bS);
+  } else if (id === 'hen'){      // 母雞：白色、紅雞冠
+    R(5, 4, 9, 7, '#ffffff'); R(4, 5, 11, 5, '#ffffff'); R(8, 6, 4, 3, '#dcdce8'); R(14, 2, 2, 5, '#dcdce8'); R(4, 10, 11, 1, '#dcdce8');
+    R(3, 1, 4, 4, '#ffffff'); R(4, 0, 2, 1, '#e83838'); R(3, 1, 1, 1, '#e83838'); R(1, 3, 2, 1, '#ffa020'); R(3, 5, 1, 1, '#e83838'); R(4, 2, 1, 1, ink);
+    R(7, 11, 1, 2, '#ffa020'); R(11, 11, 1, 2, '#ffa020'); R(6, 12, 2, 1, '#ffa020'); R(10, 12, 2, 1, '#ffa020');
+  } else if (id === 'cow'){       // 乳牛：白底黑斑、粉紅鼻子
+    const w = '#f4f4f4', wS = '#c8c8d4';
+    R(15, 5, 1, 4, wS); R(6, 5, 9, 5, w); R(6, 9, 9, 1, wS); R(8, 6, 2, 2, ink); R(12, 6, 2, 3, ink);
+    R(6, 10, 2, 3, w); R(12, 10, 2, 3, wS); R(6, 12, 2, 1, ink); R(12, 12, 2, 1, ink); R(10, 10, 2, 1, '#ffb0c0');
+    R(1, 2, 6, 6, w); R(0, 3, 1, 1, w); R(1, 1, 1, 1, '#e8d8a0'); R(6, 1, 1, 1, '#e8d8a0');
+    R(1, 6, 5, 2, '#ffb0c0'); R(2, 7, 1, 1, ink); R(4, 7, 1, 1, ink); R(2, 4, 1, 1, ink); R(5, 4, 1, 1, ink);
+  } else if (id === 'sheep'){     // 綿羊：毛茸茸的白身體、黑臉黑腳
+    const wl = '#f8f8f0', wS = '#d8d8c8', bk = '#3a3a4a';
+    R(5, 4, 11, 6, wl); R(6, 3, 3, 1, wl); R(10, 3, 3, 1, wl); R(5, 9, 11, 1, wS); R(7, 5, 1, 1, wS); R(11, 6, 1, 1, wS); R(14, 5, 1, 1, wS);
+    R(6, 10, 2, 3, bk); R(13, 10, 2, 3, bk);
+    R(1, 4, 5, 5, bk); R(0, 5, 1, 2, bk); R(2, 3, 3, 1, wl); R(2, 6, 1, 1, '#ffffff');
+  } else if (id === 'horse'){     // 小馬：咖啡色、深色鬃毛和尾巴
+    const br = '#a8683a', bS = '#7a4a24', mn = '#4a2a14';
+    R(15, 5, 2, 5, mn); R(6, 5, 9, 4, br); R(6, 8, 9, 1, bS);
+    R(6, 9, 1, 3, br); R(8, 9, 1, 3, bS); R(12, 9, 1, 3, br); R(14, 9, 1, 3, bS); [6, 8, 12, 14].forEach(x => R(x, 12, 1, 1, ink));
+    R(4, 2, 3, 5, br); R(1, 1, 5, 3, br); R(0, 2, 2, 2, bS); R(5, 1, 2, 5, mn); R(4, 0, 1, 1, br); R(3, 2, 1, 1, ink);
+  } else if (id === 'goat'){      // 山羊：米白色、小角、鬍子
+    const c1 = '#ece4d0', c2 = '#c8bca0';
+    R(15, 4, 1, 2, c1); R(6, 5, 9, 4, c1); R(6, 8, 9, 1, c2);
+    R(6, 9, 2, 3, c1); R(12, 9, 2, 3, c2); R(6, 12, 2, 1, ink); R(12, 12, 2, 1, ink);
+    R(2, 2, 5, 5, c1); R(4, 0, 1, 2, '#8a7a64'); R(6, 0, 1, 2, '#8a7a64'); R(1, 3, 1, 1, c2); R(2, 7, 2, 2, c2); R(3, 4, 1, 1, ink); R(2, 6, 1, 1, '#ff9aa8');
+  } else {   // 狗狗：紅項圈
+    const tan = '#e0a050', tanS = '#b87a34', wht = '#fff4e0', dark = '#7a4a22';
+    R(14, 4, 1, 3, tan); R(15, 3, 1, 2, tan);
+    R(6, 6, 8, 4, tan); R(6, 9, 8, 1, tanS);
+    R(6, 10, 2, 2, tan); R(12, 10, 2, 2, tanS); R(6, 11, 2, 1, wht); R(12, 11, 2, 1, wht);
+    R(2, 1, 5, 1, tan); R(1, 2, 7, 5, tan);
+    R(1, 0, 2, 2, dark); R(6, 0, 2, 2, dark);
+    R(2, 4, 4, 2, wht); R(3, 4, 2, 1, ink); R(4, 6, 1, 1, pink);
+    R(2, 3, 1, 1, ink); R(5, 3, 1, 1, ink);
+    R(4, 8, 3, 2, wht); R(3, 7, 4, 1, '#d83030'); R(4, 8, 1, 1, '#ffd23c');
+  }
+  const d = g.getImageData(0, 0, W2, H2), a = d.data, op = i => a[i * 4 + 3] > 0, out = [];
+  for (let y = 0; y < H2; y++) for (let x = 0; x < W2; x++){
+    const i = y * W2 + x; if (op(i)) continue;
+    if ((x > 0 && op(i - 1)) || (x < W2 - 1 && op(i + 1)) || (y > 0 && op(i - W2)) || (y < H2 - 1 && op(i + W2))) out.push(i);
+  }
+  out.forEach(i => { a[i * 4] = 0x1b; a[i * 4 + 1] = 0x1b; a[i * 4 + 2] = 0x2f; a[i * 4 + 3] = 255; });
+  g.putImageData(d, 0, 0);
+  return (ANIMAL_CACHE[id] = c);
+}
+const ANIMAL_URL = {};
+const animalUrl = id => ANIMAL_URL[id] || (ANIMAL_URL[id] = animalCanvas(id).toDataURL());
+
 // ---------- 畫面 ----------
 let QZ = null, qzTimer = null;
 const qzEl = () => $('stage');
-const WALKER = emojiSprite('🧒').toDataURL();   // 前進條上的小朋友
+const WALKER = KID_URL;   // 前進條上的小偵探（有身體）
 const PIC_CACHE = {};
 const picUrl = e => PIC_CACHE[e] || (PIC_CACHE[e] = emojiSprite(e).toDataURL());
 // 上方一排空罐：第一次就答對的題目，罐子就會裝滿（顯示出來）
 const cansRow = (got, total, pop) => Array.from({ length:total }, (_, i) => `<img class="qz-slot ${i < got ? 'on' : ''} ${pop && i === got - 1 ? 'pop' : ''}" src="${picUrl('🥫')}" alt="">`).join('');
 const stepsHtml = (done, total) => Array.from({ length:total }, (_, i) => i < done ? '<i class="qz-step on">★</i>' : '<i class="qz-step"></i>').join('');
 const canHtml = n => `<span class="qz-can"><img src="${picUrl('🥫')}" alt="飼料罐">×<b>${n}</b></span>`;
-const partyHtml = () => `<div class="qz-party"><img class="me" src="${WALKER}" alt="你">${QZS.pets.map((id, k) => `<img src="${picUrl(farmBy(id).e)}" alt="${farmBy(id).h}" style="animation-delay:${(k + 1) * .12}s">`).join('')}</div>`;
+const partyHtml = () => `<div class="qz-party"><img class="me" src="${WALKER}" alt="你">${QZS.pets.map((id, k) => `<img class="pet" src="${animalUrl(id)}" alt="${farmBy(id).h}" style="animation-delay:${(k + 1) * .12}s">`).join('')}</div>`;
 const focusFirst = () => setTimeout(() => { const f = qzEl().querySelector('[data-focus]') || qzEl().querySelector('button'); if (f) f.focus({ preventScroll:true }); }, 30);
 
 // 開始畫面：選難度、選題數，按確定開始
@@ -660,20 +767,18 @@ function drawFarm(){
   M.animals.forEach(a => ents.push({ y:a.y * FT, f:() => {
     const bob = a.munch > 0 ? (a.munch-- % 8 < 4 ? -2 : 0) : (Math.floor((M.frame + a.bob) / 30) % 2 ? -1 : 0);
     fP(g, a.x * FT + 2, a.y * FT + 14, 'rgba(0,0,0,.2)', 12, 2);
-    g.drawImage(sprite(a.e), a.x * FT - 1, a.y * FT - 3 + bob);
-    const n = QZS.fed[a.id] || 0;   // 頭上三格：吃了幾罐
-    for (let i = 0; i < FEED_NEED; i++){ fP(g, a.x * FT + 2 + i * 4, a.y * FT - 7, INK, 4, 4); fP(g, a.x * FT + 3 + i * 4, a.y * FT - 6, i < n ? '#fcbc3c' : '#ffffff', 2, 2); }
+    g.drawImage(animalCanvas(a.id), a.x * FT - 1, a.y * FT + 1 + bob);
   } }));
   // 跟著你的動物：排在小朋友走過的路上
   QZS.pets.forEach((id, k) => {
     const h = M.hist[Math.max(0, M.hist.length - 1 - (k + 1) * 12)];
-    ents.push({ y:h.y - .5, f:() => { const bob = Math.floor((M.frame + k * 7) / 14) % 2 ? -1 : 0; fP(g, h.x + 2, h.y + 14, 'rgba(0,0,0,.2)', 12, 2); g.drawImage(sprite(farmBy(id).e), h.x - 1, h.y - 3 + bob); } });
+    ents.push({ y:h.y - .5, f:() => { const bob = Math.floor((M.frame + k * 7) / 14) % 2 ? -1 : 0; fP(g, h.x + 2, h.y + 14, 'rgba(0,0,0,.2)', 12, 2); g.drawImage(animalCanvas(id), h.x - 1, h.y + 1 + bob); } });
   });
   ents.push({ y:M.me.py + .5, f:() => {
     const walk = M.me.path.length ? (Math.floor(M.frame / 6) % 2 ? -2 : 0) : 0;
     fP(g, M.me.px + 2, M.me.py + 14, 'rgba(0,0,0,.25)', 12, 2);
     g.save(); if (M.me.face < 0){ g.translate(M.me.px * 2 + 16, 0); g.scale(-1, 1); }
-    g.drawImage(sprite('🧒'), M.me.px - 1, M.me.py - 4 + walk); g.restore();
+    g.drawImage(KID, M.me.px - 3, M.me.py - 9 + walk); g.restore();
   } });
   ents.sort((a, b) => a.y - b.y).forEach(e => e.f());
 }
@@ -706,7 +811,7 @@ function qzFarm(res){
       : QZS.cans ? Z('ㄉㄧㄢˇ ㄉㄨㄥˋ ㄨˋ，ㄗㄡˇ ㄍㄨㄛˋ ㄑㄩˋ ㄨㄟˋ ㄊㄚ！', '點動物，走過去餵牠！')
       : Z('ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ ㄩㄥˋ ㄨㄢˊ ˙ㄌㄜ，ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ ˙ㄅㄚ！', '飼料罐用完了，再玩一次吧！')}</div>
     <canvas class="farm-cv" id="farmCv" width="${FW * FT}" height="${FH * FT}" aria-label="農場地圖：點地圖走路，點動物餵牠"></canvas>
-    <div class="farm-tip">👆 ${Z('ㄉㄧㄢˇ ㄉㄧˋ ㄊㄨˊ ㄗㄡˇ ㄌㄨˋ，ㄉㄧㄢˇ ㄉㄨㄥˋ ㄨˋ ㄨㄟˋ ㄊㄚ', '點地圖走路，點動物餵牠')}　🥫×${FEED_NEED} ${Z('ㄐㄧㄡˋ ㄔ ㄅㄠˇ', '就吃飽')}</div>
+    <div class="farm-tip">👆 ${Z('ㄉㄧㄢˇ ㄉㄧˋ ㄊㄨˊ ㄗㄡˇ ㄌㄨˋ，ㄉㄧㄢˇ ㄉㄨㄥˋ ㄨˋ ㄨㄟˋ ㄊㄚ ㄧ ㄍㄨㄢˋ，ㄊㄚ ㄐㄧㄡˋ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ', '點地圖走路，點動物餵牠一罐，牠就跟著你')}</div>
     <div class="qz-row"><button class="btn" data-qz="again" data-focus>🔁 ${Z('ㄗㄞˋ ㄨㄢˊ ㄧ ㄘˋ', '再玩一次')}</button></div>
   </div>`;
   farmStart();
@@ -753,8 +858,8 @@ const HELP_KID = [
   ['🥫', 'ㄉㄚˊ ㄉㄨㄟˋ ㄋㄚˊ ㄙˋ ㄌㄧㄠˋ ㄍㄨㄢˋ', '答對拿飼料罐'],
   ['❌', 'ㄉㄚˊ ㄘㄨㄛˋ ㄐㄧㄡˋ ㄋㄚˊ ㄅㄨˊ ㄉㄠˋ', '答錯就拿不到'],
   ['🐷', 'ㄗㄞˋ ㄋㄨㄥˊ ㄔㄤˇ ㄨㄟˋ ㄉㄨㄥˋ ㄨˋ', '在農場餵動物'],
-  ['🐾', 'ㄔ ㄅㄠˇ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ ㄏㄨㄟˋ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ', '吃飽的動物會跟著你']];
-const HELP_PARENT = '每次開始先選難度和題數：簡單二選一、中等三選一、困難四選一；題數 10、20 或 30 題（預設 10 題），按「確定」開始。畫面中間是一個東西或動作的像素圖和國字，下面是注音選項，選出正確的那一個（電腦也可以按 1～4）。題庫有 108 個一年級常用詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。答對會有「叮叮叮」的音效、電腦會唸出這個詞；上方有一排空罐，題數幾題就有幾個，第一次就答對的題目，罐子就會裝滿飼料；答錯會有低沉的「嗶嗶」聲，這一題就拿不到罐子，可以再選到對為止。家長不用在旁邊，聽聲音就知道孩子答得對不對。題目做完會到農場地圖：動物散在地圖上，點地圖小朋友就會走過去，點動物會走到牠旁邊餵一罐（電腦也可以用方向鍵走路，撞到動物就餵），餵滿 3 罐動物吃飽了就會排在後面跟著你走，可以一直餵下一隻；沒用完的飼料罐和跟著你的動物會留到下次。也可以不餵，直接按「再玩一次」。上方的「錯題紀錄」隨時可以看，會統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，也可以清空；之後出題時會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
+  ['🐾', 'ㄨㄟˋ ㄍㄨㄛˋ ˙ㄉㄜ ㄉㄨㄥˋ ㄨˋ ㄏㄨㄟˋ ㄍㄣ ˙ㄓㄜ ㄋㄧˇ', '餵過的動物會跟著你']];
+const HELP_PARENT = '每次開始先選難度和題數：簡單二選一、中等三選一、困難四選一；題數 10、20 或 30 題（預設 10 題），按「確定」開始。畫面中間是一個東西或動作的像素圖和國字，下面是注音選項，選出正確的那一個（電腦也可以按 1～4）。題庫有 108 個一年級常用詞，錯的選項專門考容易混淆的地方：聲調、ㄣ／ㄥ、ㄢ／ㄤ、ㄌ／ㄉ／ㄋ、ㄈ／ㄏ、翹舌 ㄓㄔㄕ／ㄗㄘㄙ、ㄅ／ㄆ、ㄉ／ㄊ、ㄍ／ㄎ、ㄧ／ㄩ。答對會有「叮叮叮」的音效、電腦會唸出這個詞；上方有一排空罐，題數幾題就有幾個，第一次就答對的題目，罐子就會裝滿飼料；答錯會有低沉的「嗶嗶」聲，這一題就拿不到罐子，可以再選到對為止。家長不用在旁邊，聽聲音就知道孩子答得對不對。題目做完會到農場地圖：動物散在地圖上，點地圖小朋友就會走過去，點動物會走到牠旁邊餵一罐（電腦也可以用方向鍵走路，撞到動物就餵），餵一罐動物就會排在後面跟著你走，可以一直餵下一隻；沒用完的飼料罐和跟著你的動物會留到下次。也可以不餵，直接按「再玩一次」。上方的「錯題紀錄」隨時可以看，會統計最常錯的類型、常選錯的詞（對的注音和孩子選的注音對照）和最近的錯題，也可以清空；之後出題時會優先複習以前錯過的詞。唸詞用的是裝置內建的中文語音，有些電腦沒有中文語音，就只會有音效。';
 function openHelp(){
   SFX.blip();
   $('modal').innerHTML = `<div class="qz-panel">

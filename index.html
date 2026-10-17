@@ -72,6 +72,8 @@ button{font:inherit;color:inherit}
 .qz-done{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:repeating-linear-gradient(-45deg,#ffb3d1 0 10px,#ffd76a 10px 20px);transition:width .5s steps(5)}
 .qz-steps{position:absolute;left:14px;right:40px;top:50%;translate:0 -50%;display:flex;justify-content:space-between;align-items:center}
 .qz-step{width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid #c8a0b8}
+.qz-step.can{width:18px;height:18px;border:0;border-radius:0;background:none;image-rendering:pixelated;animation:qzPop .4s steps(4)}
+.qz-step.x{width:auto;height:auto;border:0;background:none;font-style:normal;font-weight:900;font-size:15px;line-height:1;color:#e83838;text-shadow:1px 1px 0 var(--ink),-1px -1px 0 var(--ink),1px -1px 0 var(--ink),-1px 1px 0 var(--ink)}
 .qz-step.on{width:auto;height:auto;border:0;background:none;font-size:13px;line-height:1;color:#f0a000;text-shadow:1px 1px 0 var(--ink),-1px -1px 0 var(--ink),1px -1px 0 var(--ink),-1px 1px 0 var(--ink)}
 .qz-me{position:absolute;bottom:14px;width:40px;height:46px;max-width:none;translate:-50% 0;image-rendering:pixelated;image-rendering:crisp-edges;transition:left .5s steps(5);animation:qzHop .8s steps(2) infinite}
 .qz-flag{position:absolute;right:-6px;top:50%;translate:0 -58%;font-size:30px;filter:drop-shadow(2px 2px 0 rgba(0,0,0,.25))}
@@ -148,7 +150,6 @@ button{font:inherit;color:inherit}
 .seg.on small{color:var(--ink)}
 .seg:active{transform:translateY(4px);box-shadow:none}
 .seg:focus-visible{outline:3px solid var(--brick);outline-offset:2px}
-.qz-cans{flex:none;display:flex;flex-wrap:wrap;justify-content:center;gap:3px;background:rgba(255,255,255,.7);border:3px solid var(--ink);padding:4px 8px}
 .qz-slot{width:30px;height:30px;image-rendering:pixelated;image-rendering:crisp-edges;filter:grayscale(1) brightness(1.6) opacity(.35)}
 .qz-slot.on{filter:none}
 .qz-slot.pop{animation:qzPop .5s steps(4)}
@@ -203,7 +204,7 @@ button{font:inherit;color:inherit}
   .qz-opts{gap:8px}
   .qz-opt{--oh:172px;padding:4px 2px}
   .qz-slot{width:22px;height:22px}
-  .qz-track{height:32px}.qz-steps{left:10px;right:30px}.qz-step{width:6px;height:6px;border-width:1.5px}.qz-step.on{font-size:10px}.qz-me{width:30px;height:34px;bottom:10px}
+  .qz-track{height:32px}.qz-steps{left:10px;right:30px}.qz-step{width:6px;height:6px;border-width:1.5px}.qz-step.on{font-size:10px}.qz-step.can{width:12px;height:12px}.qz-step.x{font-size:11px}.qz-me{width:30px;height:34px;bottom:10px}
   .qz-top{flex-wrap:wrap}.qz-stat{flex-direction:row;align-items:center;gap:8px;width:100%;justify-content:space-between}
   .qz-title{font-size:26px}.qz-say{font-size:20px}
   .help-list{font-size:19px}
@@ -566,8 +567,9 @@ const WALKER = KID_URL;   // 前進條上的小偵探（有身體）
 const PIC_CACHE = {};
 const picUrl = e => PIC_CACHE[e] || (PIC_CACHE[e] = emojiSprite(e).toDataURL());
 // 上方一排空罐：第一次就答對的題目，罐子就會裝滿（顯示出來）
-const cansRow = (got, total, pop) => Array.from({ length:total }, (_, i) => `<img class="qz-slot ${i < got ? 'on' : ''} ${pop && i === got - 1 ? 'pop' : ''}" src="${picUrl('🥫')}" alt="">`).join('');
-const stepsHtml = (done, total) => Array.from({ length:total }, (_, i) => i < done ? '<i class="qz-step on">★</i>' : '<i class="qz-step"></i>').join('');
+// 小路上的每一格：第一次就答對＝飼料罐，答錯過＝✕，還沒做＝小圓點
+const stepsHtml = (res, total) => Array.from({ length:total }, (_, i) =>
+  res[i] === 'ok' ? `<img class="qz-step can" src="${picUrl('🥫')}" alt="">` : res[i] === 'no' ? '<i class="qz-step x">✕</i>' : '<i class="qz-step"></i>').join('');
 const canHtml = n => `<span class="qz-can"><img src="${picUrl('🥫')}" alt="飼料罐">×<b>${n}</b></span>`;
 const partyHtml = () => `<div class="qz-party"><img class="me" src="${WALKER}" alt="你">${QZS.pets.map((id, k) => `<img class="pet" src="${animalUrl(id)}" alt="${farmBy(id).h}" style="animation-delay:${(k + 1) * .12}s">`).join('')}</div>`;
 const focusFirst = () => setTimeout(() => { const f = qzEl().querySelector('[data-focus]') || qzEl().querySelector('button'); if (f) f.focus({ preventScroll:true }); }, 30);
@@ -600,7 +602,7 @@ function qzStart(){
   if (pool.length < total){ QZS.seen = []; pool = QZ_WORDS.slice(); }
   const review = shuffle(missed.map(byH).filter(Boolean)).slice(0, Math.floor(total / 3));
   const list = [...review, ...shuffle(pool.filter(w => !review.includes(w)))].slice(0, total);
-  QZ = { list:shuffle(list), total, i:0, wrong:0, got:0, missed:[], nOpt:QZS.diff, busy:false };
+  QZ = { list:shuffle(list), total, i:0, res:[], wrong:0, got:0, missed:[], nOpt:QZS.diff, busy:false };
   SFX.blip(); qzQuestion();
 }
 function qzQuestion(){
@@ -608,10 +610,9 @@ function qzQuestion(){
   QZ.opts = makeOptions(w, QZ.nOpt); QZ.tried = false; QZ.busy = false;
   const pct = QZ.i / QZ.total * 100;
   qzEl().innerHTML = `<div class="qz-top">
-      <div class="qz-track"><div class="qz-done" style="width:${pct}%"></div><div class="qz-steps">${stepsHtml(QZ.i, QZ.total)}</div><img class="qz-me" src="${WALKER}" alt="" style="left:${pct}%"><span class="qz-flag">🏡</span></div>
+      <div class="qz-track"><div class="qz-done" style="width:${pct}%"></div><div class="qz-steps">${stepsHtml(QZ.res, QZ.total)}</div><img class="qz-me" src="${WALKER}" alt="" style="left:${pct}%"><span class="qz-flag">🏡</span></div>
       <span class="qz-no">${QZ.i + 1} / ${QZ.total}</span>
     </div>
-    <div class="qz-cans" role="img" aria-label="拿到 ${QZ.got} 個飼料罐">${cansRow(QZ.got, QZ.total)}</div>
     <div class="qz-q">
       <div class="qz-card"><img class="qz-pic" src="${picUrl(w.e)}" alt="${esc(w.h)}"><div class="qz-han">${esc(w.h)}</div></div>
       <div class="qz-ask">${Z('ㄋㄚˇ ㄧ ˙ㄍㄜ ㄓㄨˋ ㄧㄣ ㄕˋ ㄉㄨㄟˋ ˙ㄉㄜ？', '哪一個注音是對的？')}</div>
@@ -632,16 +633,17 @@ function qzAnswer(k){
     qzSave();
     $('qzFb').innerHTML = QZ.tried ? `<span class="ok">✅ ${Z('ㄉㄚˊ ㄉㄨㄟˋ ˙ㄌㄜ！', '答對了！')}</span>`
       : `<span class="ok">✅ ${Z('ㄉㄚˊ ㄉㄨㄟˋ ˙ㄌㄜ！', '答對了！')} +🥫</span>`;
-    if (!QZ.tried) qzEl().querySelector('.qz-cans').innerHTML = cansRow(QZ.got, QZ.total, true);
     const pct = (QZ.i + 1) / QZ.total * 100;
     qzEl().querySelector('.qz-me').style.left = pct + '%'; qzEl().querySelector('.qz-done').style.width = pct + '%';
-    qzEl().querySelector('.qz-steps').innerHTML = stepsHtml(QZ.i + 1, QZ.total);
+    if (!QZ.tried) QZ.res[QZ.i] = 'ok';
+    qzEl().querySelector('.qz-steps').innerHTML = stepsHtml(QZ.res, QZ.total);
     setTimeout(() => speak(w.h), 350);   // 唸出正確的詞，家長在旁邊聽得到
     qzTimer = setTimeout(() => { QZ.i++; if (QZ.i >= QZ.total) qzDone(); else qzQuestion(); }, 1500);
   } else {
     QZ.tried = true; QZ.wrong++; btn.classList.add('no'); btn.disabled = true; SFX.no();
     if (!QZ.missed.some(m => m.w === w)) QZ.missed.push({ w, pick:o.z });
     logWrong(w, o);
+    QZ.res[QZ.i] = 'no'; qzEl().querySelector('.qz-steps').innerHTML = stepsHtml(QZ.res, QZ.total);
     // 答錯：這一題拿不到飼料罐，可以再選到對為止
     $('qzFb').innerHTML = `<span class="no">❌ ${Z('ㄗㄞˋ ㄒㄧㄤˇ ㄧ ㄒㄧㄤˇ', '再想一想')}（${Z('ㄓㄜˋ ㄊㄧˊ ㄋㄚˊ ㄅㄨˊ ㄉㄠˋ ㄍㄨㄢˋ ˙ㄗ ˙ㄌㄜ', '這題拿不到罐子了')}）</span>`;
   }
